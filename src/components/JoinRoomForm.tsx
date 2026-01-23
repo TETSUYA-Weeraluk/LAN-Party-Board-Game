@@ -7,11 +7,27 @@ interface JoinRoomFormProps {
   room: RoomInfo;
   onSubmit: (roomId: string, password: string | null, playerName: string) => void;
   onBack: () => void;
+  accentColor?: "pink" | "cyan";
 }
 
-export default function JoinRoomForm({ room, onSubmit, onBack }: JoinRoomFormProps) {
+export default function JoinRoomForm({ room, onSubmit, onBack, accentColor = "pink" }: JoinRoomFormProps) {
   const [playerName, setPlayerName] = useState("");
   const [password, setPassword] = useState("");
+
+  const isPink = accentColor === "pink";
+  
+  const bgGradient = isPink
+    ? "from-indigo-900 via-purple-900 to-pink-800"
+    : "from-slate-900 via-cyan-900 to-blue-900";
+  
+  const buttonGradient = isPink
+    ? "from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 focus:ring-pink-500"
+    : "from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 focus:ring-cyan-500";
+  
+  const inputRing = isPink ? "focus:ring-pink-500" : "focus:ring-cyan-500";
+  const textAccent = isPink ? "text-purple-200" : "text-cyan-200";
+  const textAccent2 = isPink ? "text-purple-300" : "text-cyan-300";
+  const gameTitle = isPink ? "🎭 Who Am I?" : "🕵️ Spy Fall";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,14 +43,14 @@ export default function JoinRoomForm({ room, onSubmit, onBack }: JoinRoomFormPro
   const isValid = playerName.trim() && (!room.hasPassword || password.trim());
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 p-4">
+    <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br ${bgGradient} p-4`}>
       <div className="w-full max-w-md">
         <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-              🎭 Who Am I?
+              {gameTitle}
             </h1>
-            <p className="text-purple-200">เข้าร่วมห้อง</p>
+            <p className={textAccent}>เข้าร่วมห้อง</p>
           </div>
 
           {/* Room Info */}
@@ -48,12 +64,12 @@ export default function JoinRoomForm({ room, onSubmit, onBack }: JoinRoomFormPro
                   </span>
                 )}
               </span>
-              <span className="text-purple-300 flex items-center gap-1">
+              <span className={`${textAccent2} flex items-center gap-1`}>
                 <span>👥</span>
                 <span>{room.playerCount}</span>
               </span>
             </div>
-            <div className="text-purple-300 text-sm">
+            <div className={`${textAccent2} text-sm`}>
               Host: <span className="text-white">{room.hostName}</span>
             </div>
           </div>
@@ -63,7 +79,7 @@ export default function JoinRoomForm({ room, onSubmit, onBack }: JoinRoomFormPro
             <div>
               <label
                 htmlFor="playerName"
-                className="block text-sm font-medium text-purple-200 mb-2"
+                className={`block text-sm font-medium ${textAccent} mb-2`}
               >
                 ชื่อของคุณ
               </label>
@@ -73,7 +89,7 @@ export default function JoinRoomForm({ room, onSubmit, onBack }: JoinRoomFormPro
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
                 placeholder="ใส่ชื่อที่ต้องการแสดง..."
-                className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white ${textAccent2} focus:outline-none focus:ring-2 ${inputRing} focus:border-transparent transition-all`}
                 autoFocus
                 maxLength={20}
               />
@@ -84,7 +100,7 @@ export default function JoinRoomForm({ room, onSubmit, onBack }: JoinRoomFormPro
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-purple-200 mb-2"
+                  className={`block text-sm font-medium ${textAccent} mb-2`}
                 >
                   รหัสผ่านห้อง
                 </label>
@@ -94,7 +110,7 @@ export default function JoinRoomForm({ room, onSubmit, onBack }: JoinRoomFormPro
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="ใส่รหัสผ่านเพื่อเข้าห้อง..."
-                  className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                  className={`w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white ${textAccent2} focus:outline-none focus:ring-2 ${inputRing} focus:border-transparent transition-all`}
                   maxLength={20}
                 />
               </div>
@@ -104,7 +120,7 @@ export default function JoinRoomForm({ room, onSubmit, onBack }: JoinRoomFormPro
             <button
               type="submit"
               disabled={!isValid}
-              className="w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:from-pink-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-purple-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+              className={`w-full py-3 px-4 bg-gradient-to-r ${buttonGradient} text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-purple-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]`}
             >
               🎮 เข้าร่วมเกม
             </button>

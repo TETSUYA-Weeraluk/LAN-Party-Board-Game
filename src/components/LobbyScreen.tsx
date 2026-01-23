@@ -6,6 +6,7 @@ import PlayerCard from "./PlayerCard";
 import CategorySelector from "./CategorySelector";
 
 interface LobbyScreenProps {
+  roomId: string;
   roomName: string;
   players: Player[];
   currentPlayerId: string;
@@ -17,6 +18,7 @@ interface LobbyScreenProps {
 }
 
 export default function LobbyScreen({
+  roomId,
   roomName,
   players,
   currentPlayerId,
@@ -27,14 +29,15 @@ export default function LobbyScreen({
   isStarting,
 }: LobbyScreenProps) {
   const [showIpInfo, setShowIpInfo] = useState(false);
-  const [localIp, setLocalIp] = useState<string>("");
+  const [shareUrl, setShareUrl] = useState<string>("");
 
   useEffect(() => {
-    // Get window location for sharing
+    // Get window location for sharing with room ID
     if (typeof window !== "undefined") {
-      setLocalIp(window.location.host);
+      const baseUrl = window.location.origin;
+      setShareUrl(`${baseUrl}/who-am-i/${roomId}`);
     }
-  }, []);
+  }, [roomId]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 p-4">
@@ -43,6 +46,7 @@ export default function LobbyScreen({
         <div className="text-center mb-8 pt-8">
           <h1 className="text-4xl font-bold text-white mb-2">🎭 Who Am I?</h1>
           <p className="text-purple-200">ห้อง: <span className="text-white font-semibold">{roomName}</span></p>
+          <p className="text-purple-300 text-sm mt-1">รหัสห้อง: <code className="bg-white/10 px-2 py-0.5 rounded">{roomId}</code></p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -70,11 +74,11 @@ export default function LobbyScreen({
                 </p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 p-2 bg-black/30 rounded text-pink-300 text-sm break-all">
-                    http://{localIp}
+                    {shareUrl}
                   </code>
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`http://${localIp}`);
+                      navigator.clipboard.writeText(shareUrl);
                     }}
                     className="px-3 py-2 bg-pink-500 text-white rounded-lg text-sm hover:bg-pink-600 transition-colors"
                   >

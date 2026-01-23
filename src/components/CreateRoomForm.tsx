@@ -5,13 +5,30 @@ import { useState } from "react";
 interface CreateRoomFormProps {
   onSubmit: (roomName: string, password: string | null, playerName: string) => void;
   onBack: () => void;
+  accentColor?: "pink" | "cyan";
 }
 
-export default function CreateRoomForm({ onSubmit, onBack }: CreateRoomFormProps) {
+export default function CreateRoomForm({ onSubmit, onBack, accentColor = "pink" }: CreateRoomFormProps) {
   const [roomName, setRoomName] = useState("");
   const [password, setPassword] = useState("");
   const [playerName, setPlayerName] = useState("");
   const [usePassword, setUsePassword] = useState(false);
+
+  const isPink = accentColor === "pink";
+  
+  const bgGradient = isPink
+    ? "from-indigo-900 via-purple-900 to-pink-800"
+    : "from-slate-900 via-cyan-900 to-blue-900";
+  
+  const buttonGradient = isPink
+    ? "from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 focus:ring-pink-500"
+    : "from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 focus:ring-cyan-500";
+  
+  const toggleColor = isPink ? "bg-pink-500" : "bg-cyan-500";
+  const inputRing = isPink ? "focus:ring-pink-500" : "focus:ring-cyan-500";
+  const textAccent = isPink ? "text-purple-200" : "text-cyan-200";
+  const textAccent2 = isPink ? "text-purple-300" : "text-cyan-300";
+  const gameTitle = isPink ? "🎭 Who Am I?" : "🕵️ Spy Fall";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,14 +44,14 @@ export default function CreateRoomForm({ onSubmit, onBack }: CreateRoomFormProps
   const isValid = roomName.trim() && playerName.trim();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 p-4">
+    <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br ${bgGradient} p-4`}>
       <div className="w-full max-w-md">
         <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-              🎭 Who Am I?
+              {gameTitle}
             </h1>
-            <p className="text-purple-200">สร้างห้องใหม่</p>
+            <p className={textAccent}>สร้างห้องใหม่</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -42,7 +59,7 @@ export default function CreateRoomForm({ onSubmit, onBack }: CreateRoomFormProps
             <div>
               <label
                 htmlFor="roomName"
-                className="block text-sm font-medium text-purple-200 mb-2"
+                className={`block text-sm font-medium ${textAccent} mb-2`}
               >
                 ชื่อห้อง
               </label>
@@ -52,7 +69,7 @@ export default function CreateRoomForm({ onSubmit, onBack }: CreateRoomFormProps
                 value={roomName}
                 onChange={(e) => setRoomName(e.target.value)}
                 placeholder="ตั้งชื่อห้องของคุณ..."
-                className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-${isPink ? 'purple' : 'cyan'}-300 focus:outline-none focus:ring-2 ${inputRing} focus:border-transparent transition-all`}
                 autoFocus
                 maxLength={30}
               />
@@ -64,7 +81,7 @@ export default function CreateRoomForm({ onSubmit, onBack }: CreateRoomFormProps
                 type="button"
                 onClick={() => setUsePassword(!usePassword)}
                 className={`relative w-12 h-6 rounded-full transition-colors ${
-                  usePassword ? "bg-pink-500" : "bg-white/20"
+                  usePassword ? toggleColor : "bg-white/20"
                 }`}
               >
                 <div
@@ -73,7 +90,7 @@ export default function CreateRoomForm({ onSubmit, onBack }: CreateRoomFormProps
                   }`}
                 />
               </button>
-              <span className="text-purple-200 text-sm">ตั้งรหัสผ่านห้อง</span>
+              <span className={`${textAccent} text-sm`}>ตั้งรหัสผ่านห้อง</span>
             </div>
 
             {/* Password Input */}
@@ -81,7 +98,7 @@ export default function CreateRoomForm({ onSubmit, onBack }: CreateRoomFormProps
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-purple-200 mb-2"
+                  className={`block text-sm font-medium ${textAccent} mb-2`}
                 >
                   รหัสผ่าน
                 </label>
@@ -91,7 +108,7 @@ export default function CreateRoomForm({ onSubmit, onBack }: CreateRoomFormProps
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="ใส่รหัสผ่าน..."
-                  className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                  className={`w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white ${textAccent2} focus:outline-none focus:ring-2 ${inputRing} focus:border-transparent transition-all`}
                   maxLength={20}
                 />
               </div>
@@ -103,7 +120,7 @@ export default function CreateRoomForm({ onSubmit, onBack }: CreateRoomFormProps
             <div>
               <label
                 htmlFor="playerName"
-                className="block text-sm font-medium text-purple-200 mb-2"
+                className={`block text-sm font-medium ${textAccent} mb-2`}
               >
                 ชื่อของคุณ (Host)
               </label>
@@ -113,7 +130,7 @@ export default function CreateRoomForm({ onSubmit, onBack }: CreateRoomFormProps
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
                 placeholder="ใส่ชื่อที่ต้องการแสดง..."
-                className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                className={`w-full px-4 py-3 bg-white/10 border border-white/30 rounded-xl text-white ${textAccent2} focus:outline-none focus:ring-2 ${inputRing} focus:border-transparent transition-all`}
                 maxLength={20}
               />
             </div>
@@ -122,7 +139,7 @@ export default function CreateRoomForm({ onSubmit, onBack }: CreateRoomFormProps
             <button
               type="submit"
               disabled={!isValid}
-              className="w-full py-3 px-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:from-pink-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-purple-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+              className={`w-full py-3 px-4 bg-gradient-to-r ${buttonGradient} text-white font-semibold rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-purple-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]`}
             >
               🚀 สร้างห้องและเข้าเกม
             </button>

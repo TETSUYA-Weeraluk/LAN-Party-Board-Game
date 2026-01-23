@@ -1,3 +1,6 @@
+// Game type
+export type GameType = "who-am-i" | "spy-fall";
+
 // Player interface
 export interface Player {
   id: string;
@@ -8,6 +11,8 @@ export interface Player {
   score: number;           // คะแนนรวม
   hasAnswered: boolean;    // ตอบถูกแล้วในรอบนี้หรือยัง
   answerOrder?: number;    // ลำดับที่ตอบถูก (1, 2, 3, ...)
+  isEliminated?: boolean;  // ถูกคัดออกจากรอบนี้ (ตอบผิด)
+  isWaiting?: boolean;     // รอเข้าร่วมในรอบถัดไป (late join)
 }
 
 // Player with word visible (for other players to see)
@@ -18,6 +23,18 @@ export interface PlayerWithWord {
   score: number;
   hasAnswered: boolean;
   answerOrder?: number;
+  isEliminated?: boolean;
+}
+
+// Spy Fall player interface
+export interface SpyFallPlayer {
+  id: string;
+  sessionId: string;
+  name: string;
+  isHost: boolean;
+  score: number;
+  isSpy?: boolean;         // Is this player the spy?
+  wins: number;            // จำนวนรอบที่ชนะ
 }
 
 // Game room state
@@ -36,6 +53,7 @@ export interface GameRoom {
   playedCategories: string[];     // หมวดที่เล่นไปแล้ว
   answeredCount: number;          // จำนวนคนที่ตอบถูกในรอบนี้
   roundFinished: boolean;         // รอบนี้จบแล้วหรือยัง
+  gameType: GameType;             // ประเภทเกม
 }
 
 // Room info for room list (public info only)
@@ -46,6 +64,7 @@ export interface RoomInfo {
   playerCount: number;
   hasPassword: boolean;
   isPlaying: boolean;
+  gameType: GameType;
 }
 
 // Game state for client
@@ -62,9 +81,10 @@ export interface RoomJoined {
   roomName: string;
   player: Player;
   isHost: boolean;
+  gameType: GameType;
 }
 
-// Game started data
+// Game started data (Who Am I)
 export interface GameStartedData {
   category: string;
   otherPlayers: PlayerWithWord[];
@@ -72,6 +92,15 @@ export interface GameStartedData {
   timerStartedAt: number;
   currentRound: number;
   playedCategories: string[];
+}
+
+// Spy Fall game started data
+export interface SpyFallGameStartedData {
+  location: string | null;  // null if spy
+  isSpy: boolean;
+  timerDuration: number;
+  timerStartedAt: number;
+  currentRound: number;
 }
 
 // Start game data
@@ -89,10 +118,25 @@ export interface PlayerAnsweredData {
   totalScore: number;
 }
 
+// Player eliminated data (wrong answer)
+export interface PlayerEliminatedData {
+  playerId: string;
+  playerName: string;
+}
+
 // Round ended data
 export interface RoundEndedData {
   players: Player[];
   playedCategories: string[];
+  currentRound: number;
+}
+
+// Spy Fall round ended data
+export interface SpyFallRoundEndedData {
+  players: SpyFallPlayer[];
+  spyId: string;
+  actualLocation: string;
+  result: "spy-wins" | "spy-caught";
   currentRound: number;
 }
 
@@ -104,13 +148,21 @@ export interface RejoinSuccessData {
   isHost: boolean;
   gameState: "lobby" | "playing" | "round-end";
   players: Player[];
-  // Game data (if playing)
+  gameType: GameType;
+  // Who Am I game data (if playing)
   category?: string;
   otherPlayers?: PlayerWithWord[];
   timerDuration?: number;
   timerStartedAt?: number;
   currentRound?: number;
   playedCategories?: string[];
+  // Spy Fall specific
+  customLocations?: string[];
+  myLocation?: string | null;
+  isSpy?: boolean;
+  spyId?: string;
+  actualLocation?: string;
+  roundResult?: "spy-wins" | "spy-caught";
 }
 
 // Rejoin request data
@@ -124,6 +176,7 @@ export interface CreateRoomData {
   password: string | null;
   playerName: string;
   sessionId: string;
+  gameType: GameType;
 }
 
 // Join room data
@@ -139,12 +192,28 @@ export interface LeaveRoomData {
   roomId: string;
 }
 
+// Get room info data
+export interface GetRoomInfoData {
+  roomId: string;
+}
+
+// Add location data (Spy Fall)
+export interface AddLocationData {
+  location: string;
+}
+
+// Remove location data (Spy Fall)
+export interface RemoveLocationData {
+  location: string;
+}
+
 // Socket.io event types
 export interface ServerToClientEvents {
   // Room list events
   roomList: (data: RoomListData) => void;
   roomJoined: (data: RoomJoined) => void;
-  playersUpdate: (players: Player[]) => void;
+  roomInfo: (data: RoomInfo | null) => void;
+  playersUpdate: (players: Player[] | SpyFallPlayer[]) => void;
   gameStarted: (data: GameStartedData) => void;
   roomClosed: () => void;
   leftRoom: () => void;
@@ -152,15 +221,21 @@ export interface ServerToClientEvents {
   error: (message: string) => void;
   // Multi-round events
   playerAnswered: (data: PlayerAnsweredData) => void;
+  playerEliminated: (data: PlayerEliminatedData) => void;
   roundEnded: (data: RoundEndedData) => void;
   // Reconnection events
   rejoinSuccess: (data: RejoinSuccessData) => void;
   rejoinFailed: (reason: string) => void;
+  // Spy Fall events
+  locationsUpdate: (locations: string[]) => void;
+  spyFallGameStarted: (data: SpyFallGameStartedData) => void;
+  spyFallRoundEnded: (data: SpyFallRoundEndedData) => void;
 }
 
 export interface ClientToServerEvents {
   // Room list events
   getRoomList: () => void;
+  getRoomInfo: (data: GetRoomInfoData) => void;
   createRoom: (data: CreateRoomData) => void;
   joinRoom: (data: JoinRoomData) => void;
   leaveRoom: (data: LeaveRoomData) => void;
@@ -170,7 +245,14 @@ export interface ClientToServerEvents {
   revealMyWord: () => void;
   // Multi-round events
   markCorrect: (playerId: string) => void;
+  markWrong: (playerId: string) => void;
   nextRound: (data: StartGameData) => void;
   // Reconnection events
   rejoin: (data: RejoinData) => void;
+  // Spy Fall events
+  addLocation: (data: AddLocationData) => void;
+  removeLocation: (data: RemoveLocationData) => void;
+  startSpyFallGame: () => void;
+  spyCaught: () => void;
+  spyWins: () => void;
 }
