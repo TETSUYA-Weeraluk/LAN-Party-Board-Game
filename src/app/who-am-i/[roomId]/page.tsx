@@ -3,12 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSocket, getSessionId, clearSessionId } from "@/lib/socket";
-import type { Player, PlayerWithWord, RoomInfo } from "@/types/game";
-import LobbyScreen from "@/components/LobbyScreen";
-import GameScreen from "@/components/GameScreen";
-import RoundEndScreen from "@/components/RoundEndScreen";
+import type { RoomInfo } from "@/types/shared";
+import type { Player, PlayerWithWord } from "@/game/who-am-i";
+import { LobbyScreen, GameScreen, RoundEndScreen, RulesButton } from "@/game/who-am-i";
 import JoinRoomForm from "@/components/JoinRoomForm";
-import RulesButton from "@/components/RulesButton";
 
 type GameState = "loading" | "joining" | "lobby" | "playing" | "round-end";
 

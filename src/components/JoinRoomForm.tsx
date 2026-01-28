@@ -7,27 +7,43 @@ interface JoinRoomFormProps {
   room: RoomInfo;
   onSubmit: (roomId: string, password: string | null, playerName: string) => void;
   onBack: () => void;
-  accentColor?: "pink" | "cyan";
+  accentColor?: "pink" | "cyan" | "purple";
 }
 
 export default function JoinRoomForm({ room, onSubmit, onBack, accentColor = "pink" }: JoinRoomFormProps) {
   const [playerName, setPlayerName] = useState("");
   const [password, setPassword] = useState("");
 
-  const isPink = accentColor === "pink";
-  
-  const bgGradient = isPink
-    ? "from-indigo-900 via-purple-900 to-pink-800"
-    : "from-slate-900 via-cyan-900 to-blue-900";
-  
-  const buttonGradient = isPink
-    ? "from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 focus:ring-pink-500"
-    : "from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 focus:ring-cyan-500";
-  
-  const inputRing = isPink ? "focus:ring-pink-500" : "focus:ring-cyan-500";
-  const textAccent = isPink ? "text-purple-200" : "text-cyan-200";
-  const textAccent2 = isPink ? "text-purple-300" : "text-cyan-300";
-  const gameTitle = isPink ? "🎭 Who Am I?" : "🕵️ Spy Fall";
+  // Color schemes for different games
+  const colorSchemes = {
+    pink: {
+      bgGradient: "from-indigo-900 via-purple-900 to-pink-800",
+      buttonGradient: "from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 focus:ring-pink-500",
+      inputRing: "focus:ring-pink-500",
+      textAccent: "text-purple-200",
+      textAccent2: "text-purple-300",
+      gameTitle: "🎭 Who Am I?",
+    },
+    cyan: {
+      bgGradient: "from-slate-900 via-cyan-900 to-blue-900",
+      buttonGradient: "from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 focus:ring-cyan-500",
+      inputRing: "focus:ring-cyan-500",
+      textAccent: "text-cyan-200",
+      textAccent2: "text-cyan-300",
+      gameTitle: "🕵️ Spy Fall",
+    },
+    purple: {
+      bgGradient: "from-slate-900 via-purple-900 to-indigo-900",
+      buttonGradient: "from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 focus:ring-purple-500",
+      inputRing: "focus:ring-purple-500",
+      textAccent: "text-purple-200",
+      textAccent2: "text-purple-300",
+      gameTitle: "🎭 Undercover",
+    },
+  };
+
+  const colors = colorSchemes[accentColor];
+  const { bgGradient, buttonGradient, inputRing, textAccent, textAccent2, gameTitle } = colors;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

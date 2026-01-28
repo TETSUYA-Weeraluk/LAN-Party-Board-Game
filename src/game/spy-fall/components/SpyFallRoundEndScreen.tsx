@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { SpyFallPlayer } from "@/types/game";
+import type { SpyFallPlayer, SpyFallRoundResult } from "../types";
 
 interface SpyFallRoundEndScreenProps {
   players: SpyFallPlayer[];
   currentPlayerId: string;
   spyId: string | null;
   actualLocation: string | null;
-  roundResult: "spy-wins" | "spy-caught" | null;
+  roundResult: SpyFallRoundResult | null;
   currentRound: number;
   isHost: boolean;
   onNextRound: () => void;
@@ -47,6 +47,8 @@ export default function SpyFallRoundEndScreen({
           className={`relative overflow-hidden rounded-3xl p-8 mb-8 border-2 ${
             roundResult === "spy-wins"
               ? "bg-gradient-to-br from-red-900/50 to-red-800/30 border-red-500/50"
+              : roundResult === "spy-wrong-guess"
+              ? "bg-gradient-to-br from-yellow-900/50 to-yellow-800/30 border-yellow-500/50"
               : "bg-gradient-to-br from-green-900/50 to-green-800/30 border-green-500/50"
           }`}
         >
@@ -54,12 +56,20 @@ export default function SpyFallRoundEndScreen({
           
           <div className="relative z-10 text-center">
             <div className="text-7xl mb-4">
-              {roundResult === "spy-wins" ? "🕵️" : "🎯"}
+              {roundResult === "spy-wins" ? "🕵️" : roundResult === "spy-wrong-guess" ? "❌" : "🎯"}
             </div>
             <h2 className={`text-3xl font-bold mb-4 ${
-              roundResult === "spy-wins" ? "text-red-300" : "text-green-300"
+              roundResult === "spy-wins" 
+                ? "text-red-300" 
+                : roundResult === "spy-wrong-guess"
+                ? "text-yellow-300"
+                : "text-green-300"
             }`}>
-              {roundResult === "spy-wins" ? "Spy ชนะ!" : "หา Spy เจอ!"}
+              {roundResult === "spy-wins" 
+                ? "Spy ทายถูก! Spy ชนะ!" 
+                : roundResult === "spy-wrong-guess"
+                ? "Spy ทายผิด! ผู้เล่นชนะ!"
+                : "หา Spy เจอ! ผู้เล่นชนะ!"}
             </h2>
             
             {spyPlayer && (

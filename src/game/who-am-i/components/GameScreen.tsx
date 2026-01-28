@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { PlayerWithWord, Player } from "@/types/game";
-import Timer from "./Timer";
-import ScoreBoard from "./ScoreBoard";
+import type { PlayerWithWord, Player } from "../types";
+import Timer from "@/components/Timer";
+import ScoreBoard from "@/components/ScoreBoard";
 
 interface GameScreenProps {
   category: string;

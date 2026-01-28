@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSocket, getSessionId, clearSessionId } from "@/lib/socket";
 import type { Player, RoomInfo } from "@/types/shared";
-import type { SpyFallPlayer } from "@/game/spy-fall";
-import { SpyFallLobbyScreen, SpyFallGameScreen, SpyFallRoundEndScreen } from "@/game/spy-fall";
+import type { UndercoverPlayer, UndercoverRole, UndercoverVoteResultData, UndercoverMrWhiteGuessResultData, UndercoverWinResult } from "@/game/undercover";
+import { UndercoverLobbyScreen, UndercoverGameScreen, UndercoverRoundEndScreen } from "@/game/undercover";
 import JoinRoomForm from "@/components/JoinRoomForm";
 
 type GameState = "loading" | "joining" | "lobby" | "playing" | "round-end";
@@ -16,13 +16,13 @@ function ErrorToast({ message }: { message: string | null }) {
   return (
     <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
       <div className="bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg animate-bounce">
-        ⚠️ {message}
+        {message}
       </div>
     </div>
   );
 }
 
-export default function SpyFallRoomPage() {
+export default function UndercoverRoomPage() {
   const params = useParams();
   const router = useRouter();
   const roomId = params.roomId as string;
@@ -34,26 +34,29 @@ export default function SpyFallRoomPage() {
 
   // Player state
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
-  const [players, setPlayers] = useState<SpyFallPlayer[]>([]);
+  const currentPlayerIdRef = useRef<string | null>(null);
+  const [players, setPlayers] = useState<UndercoverPlayer[]>([]);
   const [isHost, setIsHost] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Game state
-  const [myLocation, setMyLocation] = useState<string | null>(null);
-  const [isSpy, setIsSpy] = useState(false);
-  const [timerDuration, setTimerDuration] = useState(0);
-  const [timerStartedAt, setTimerStartedAt] = useState(0);
-  const [spyId, setSpyId] = useState<string | null>(null);
-  const [actualLocation, setActualLocation] = useState<string | null>(null);
+  const [myRole, setMyRole] = useState<UndercoverRole>("civilian");
+  const [myWord, setMyWord] = useState<string | null>(null);
+  const [alivePlayers, setAlivePlayers] = useState<UndercoverPlayer[]>([]);
+  const [spectators, setSpectators] = useState<UndercoverPlayer[]>([]);
+  const [isSpectator, setIsSpectator] = useState(false);
 
-  // Custom locations state
-  const [customLocations, setCustomLocations] = useState<string[]>([]);
-  const [excludedLocations, setExcludedLocations] = useState<string[]>([]);
+  // Vote state
+  const [voteResult, setVoteResult] = useState<UndercoverVoteResultData | null>(null);
+  const [mrWhiteGuessResult, setMrWhiteGuessResult] = useState<UndercoverMrWhiteGuessResultData | null>(null);
+  const [waitingForMrWhiteGuess, setWaitingForMrWhiteGuess] = useState(false);
 
-  // Round state
+  // Round end state
+  const [roundResult, setRoundResult] = useState<UndercoverWinResult>("civilian-win");
+  const [civilianWord, setCivilianWord] = useState<string>("");
+  const [undercoverWord, setUndercoverWord] = useState<string>("");
   const [currentRound, setCurrentRound] = useState(0);
-  const [roundResult, setRoundResult] = useState<"spy-wins" | "spy-caught" | "spy-wrong-guess" | null>(null);
 
   useEffect(() => {
     const socket = getSocket();
@@ -76,29 +79,37 @@ export default function SpyFallRoomPage() {
       if (data.roomId === roomId) {
         setCurrentRoomName(data.roomName);
         setCurrentPlayer(data.player);
+        currentPlayerIdRef.current = data.player.id;
         setIsHost(data.isHost);
-        setPlayers((data.players as unknown) as SpyFallPlayer[]);
-        setCustomLocations(data.customLocations || []);
-        setExcludedLocations(data.excludedLocations || []);
+        setPlayers((data.players as unknown) as UndercoverPlayer[]);
 
         if (data.gameState === "playing") {
-          setMyLocation(data.myLocation || null);
-          setIsSpy(data.isSpy || false);
-          setTimerDuration(data.timerDuration || 0);
-          setTimerStartedAt(data.timerStartedAt || 0);
+          setMyRole(data.myRole || "civilian");
+          setMyWord(data.myWord || null);
+          setAlivePlayers(data.alivePlayers || []);
+          setSpectators(data.spectators || []);
           setCurrentRound(data.currentRound || 0);
+          
+          // Check if current player is spectator
+          const currentPlayerData = data.alivePlayers?.find((p: UndercoverPlayer) => p.id === data.player.id);
+          setIsSpectator(!currentPlayerData);
+          
           setGameState("playing");
         } else if (data.gameState === "round-end") {
           setCurrentRound(data.currentRound || 0);
-          setSpyId(data.spyId || null);
-          setActualLocation(data.actualLocation || null);
-          setRoundResult(data.roundResult || null);
+          setCivilianWord(data.civilianWord || "");
+          setUndercoverWord(data.undercoverWord || "");
+          setRoundResult(data.undercoverRoundResult || "civilian-win");
           setGameState("round-end");
         } else {
+          // Separate players into active and spectators
+          const allPlayers = (data.players as unknown) as UndercoverPlayer[];
+          setAlivePlayers(allPlayers.filter(p => !p.isSpectator));
+          setSpectators(allPlayers.filter(p => p.isSpectator));
           setGameState("lobby");
         }
       } else {
-        router.push(`/spy-fall/${data.roomId}`);
+        router.push(`/undercover/${data.roomId}`);
       }
     });
 
@@ -114,7 +125,7 @@ export default function SpyFallRoomPage() {
         setGameState("joining");
       } else {
         setError("ไม่พบห้องนี้");
-        setTimeout(() => router.push("/spy-fall"), 2000);
+        setTimeout(() => router.push("/undercover"), 2000);
       }
     });
 
@@ -123,54 +134,92 @@ export default function SpyFallRoomPage() {
       if (joinedRoomId === roomId) {
         setCurrentRoomName(roomName);
         setCurrentPlayer(player);
+        currentPlayerIdRef.current = player.id;
         setIsHost(hostStatus);
         setGameState("lobby");
       }
     });
 
-    // Players update
+    // Players update (generic)
     socket.on("playersUpdate", (updatedPlayers) => {
-      // Cast to SpyFallPlayer[] for spy-fall rooms
-      const spyFallPlayers = (updatedPlayers as unknown) as SpyFallPlayer[];
-      setPlayers(spyFallPlayers);
+      const undercoverPlayers = (updatedPlayers as unknown) as UndercoverPlayer[];
+      setPlayers(undercoverPlayers);
+      setAlivePlayers(undercoverPlayers.filter(p => !p.isSpectator));
+      setSpectators(undercoverPlayers.filter(p => p.isSpectator));
     });
 
-    // Custom locations update
-    socket.on("locationsUpdate", (data) => {
-      setCustomLocations(data.customLocations);
-      setExcludedLocations(data.excludedLocations);
+    // Undercover players update
+    socket.on("undercoverPlayersUpdate", (data) => {
+      setAlivePlayers(data.alivePlayers);
+      setSpectators(data.spectators);
+      setPlayers([...data.alivePlayers, ...data.spectators]);
+      
+      // Update isSpectator status using ref
+      if (currentPlayerIdRef.current) {
+        const isSpec = data.spectators.some((p: UndercoverPlayer) => p.id === currentPlayerIdRef.current);
+        setIsSpectator(isSpec);
+      }
     });
 
-    // Spy Fall game started
-    socket.on("spyFallGameStarted", (data) => {
-      setMyLocation(data.location);
-      setIsSpy(data.isSpy);
-      setTimerDuration(data.timerDuration);
-      setTimerStartedAt(data.timerStartedAt);
+    // Undercover game started
+    socket.on("undercoverGameStarted", (data) => {
+      setMyRole(data.role);
+      setMyWord(data.word);
+      setAlivePlayers(data.alivePlayers);
+      setSpectators(data.spectators);
       setCurrentRound(data.currentRound);
       setIsStarting(false);
+      setVoteResult(null);
+      setMrWhiteGuessResult(null);
+      setWaitingForMrWhiteGuess(false);
+      
+      // Check if current player is spectator using ref
+      if (currentPlayerIdRef.current) {
+        const isSpec = data.spectators.some((p: UndercoverPlayer) => p.id === currentPlayerIdRef.current);
+        setIsSpectator(isSpec);
+      }
+      
       setGameState("playing");
     });
 
-    // Spy Fall round ended
-    socket.on("spyFallRoundEnded", (data) => {
-      setPlayers(data.players as SpyFallPlayer[]);
-      setSpyId(data.spyId);
-      setActualLocation(data.actualLocation);
+    // Vote result
+    socket.on("undercoverVoteResult", (data) => {
+      setVoteResult(data);
+      setWaitingForMrWhiteGuess(data.isMrWhiteGuessing);
+      
+      // Update alive players - remove voted player
+      setAlivePlayers(prev => prev.filter(p => p.id !== data.votedPlayerId));
+    });
+
+    // Mr.White guess result
+    socket.on("undercoverMrWhiteGuessResult", (data) => {
+      setMrWhiteGuessResult(data);
+      setWaitingForMrWhiteGuess(false);
+    });
+
+    // Round ended
+    socket.on("undercoverRoundEnded", (data) => {
+      setPlayers(data.players);
       setRoundResult(data.result);
+      setCivilianWord(data.civilianWord);
+      setUndercoverWord(data.undercoverWord);
       setCurrentRound(data.currentRound);
+      setIsStarting(false);
+      setVoteResult(null);
+      setMrWhiteGuessResult(null);
+      setWaitingForMrWhiteGuess(false);
       setGameState("round-end");
     });
 
     // Room closed
     socket.on("roomClosed", () => {
       clearSessionId();
-      router.push("/spy-fall");
+      router.push("/undercover");
     });
 
     // Left room
     socket.on("leftRoom", () => {
-      router.push("/spy-fall");
+      router.push("/undercover");
     });
 
     // Error handling
@@ -187,9 +236,11 @@ export default function SpyFallRoomPage() {
       socket.off("roomInfo");
       socket.off("roomJoined");
       socket.off("playersUpdate");
-      socket.off("locationsUpdate");
-      socket.off("spyFallGameStarted");
-      socket.off("spyFallRoundEnded");
+      socket.off("undercoverPlayersUpdate");
+      socket.off("undercoverGameStarted");
+      socket.off("undercoverVoteResult");
+      socket.off("undercoverMrWhiteGuessResult");
+      socket.off("undercoverRoundEnded");
       socket.off("roomClosed");
       socket.off("leftRoom");
       socket.off("error");
@@ -206,7 +257,7 @@ export default function SpyFallRoomPage() {
   const handleStartGame = useCallback(() => {
     const socket = getSocket();
     setIsStarting(true);
-    socket.emit("startSpyFallGame");
+    socket.emit("startUndercoverGame");
   }, []);
 
   // Handle close room
@@ -215,41 +266,35 @@ export default function SpyFallRoomPage() {
     socket.emit("closeRoom");
   }, []);
 
-  // Handle add location
-  const handleAddLocation = useCallback((location: string) => {
+  // Handle toggle spectator
+  const handleToggleSpectator = useCallback((spectator: boolean) => {
     const socket = getSocket();
-    socket.emit("addLocation", { location });
+    socket.emit("toggleSpectator", spectator);
   }, []);
 
-  // Handle remove location
-  const handleRemoveLocation = useCallback((location: string) => {
+  // Handle vote
+  const handleVote = useCallback((playerId: string) => {
     const socket = getSocket();
-    socket.emit("removeLocation", { location });
+    socket.emit("undercoverVote", { playerId });
   }, []);
 
-  // Handle spy caught
-  const handleSpyCaught = useCallback(() => {
+  // Handle Mr.White guess
+  const handleMrWhiteGuess = useCallback((guess: string) => {
     const socket = getSocket();
-    socket.emit("spyCaught");
+    socket.emit("undercoverMrWhiteGuess", { guess });
   }, []);
 
-  // Handle spy wins
-  const handleSpyWins = useCallback(() => {
+  // Handle end game
+  const handleEndGame = useCallback(() => {
     const socket = getSocket();
-    socket.emit("spyWins");
-  }, []);
-
-  // Handle spy wrong guess
-  const handleSpyWrongGuess = useCallback(() => {
-    const socket = getSocket();
-    socket.emit("spyWrongGuess");
+    socket.emit("endUndercoverGame");
   }, []);
 
   // Handle next round
   const handleNextRound = useCallback(() => {
     const socket = getSocket();
     setIsStarting(true);
-    socket.emit("startSpyFallGame");
+    socket.emit("startUndercoverGame");
   }, []);
 
   // Handle join room
@@ -265,9 +310,9 @@ export default function SpyFallRoomPage() {
   // Loading state
   if (gameState === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-cyan-900 to-blue-900">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900">
         <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">🕵️</div>
+          <div className="text-6xl mb-4 animate-bounce">🎭</div>
           <p className="text-white text-xl">กำลังเชื่อมต่อห้อง...</p>
         </div>
       </div>
@@ -282,8 +327,8 @@ export default function SpyFallRoomPage() {
         <JoinRoomForm
           room={roomInfo}
           onSubmit={handleJoinRoom}
-          onBack={() => router.push("/spy-fall")}
-          accentColor="cyan"
+          onBack={() => router.push("/undercover")}
+          accentColor="purple"
         />
       </>
     );
@@ -294,19 +339,16 @@ export default function SpyFallRoomPage() {
     return (
       <>
         <ErrorToast message={error} />
-        <SpyFallLobbyScreen
+        <UndercoverLobbyScreen
           roomId={roomId}
           roomName={currentRoomName}
           players={players}
           currentPlayerId={currentPlayer.id}
           isHost={isHost}
-          customLocations={customLocations}
-          excludedLocations={excludedLocations}
           onStartGame={handleStartGame}
           onCloseRoom={handleCloseRoom}
           onLeaveRoom={handleLeaveRoom}
-          onAddLocation={handleAddLocation}
-          onRemoveLocation={handleRemoveLocation}
+          onToggleSpectator={handleToggleSpectator}
           isStarting={isStarting}
         />
       </>
@@ -318,21 +360,23 @@ export default function SpyFallRoomPage() {
     return (
       <>
         <ErrorToast message={error} />
-        <SpyFallGameScreen
+        <UndercoverGameScreen
+          currentPlayerId={currentPlayer.id}
           currentPlayerName={currentPlayer.name}
-          players={players}
-          myLocation={myLocation}
-          isSpy={isSpy}
-          timerDuration={timerDuration}
-          timerStartedAt={timerStartedAt}
+          myRole={myRole}
+          myWord={myWord}
+          alivePlayers={alivePlayers}
+          spectators={spectators}
           isHost={isHost}
+          isSpectator={isSpectator}
           currentRound={currentRound}
-          customLocations={customLocations}
-          excludedLocations={excludedLocations}
+          voteResult={voteResult}
+          mrWhiteGuessResult={mrWhiteGuessResult}
+          waitingForMrWhiteGuess={waitingForMrWhiteGuess}
+          onVote={handleVote}
+          onMrWhiteGuess={handleMrWhiteGuess}
           onCloseRoom={handleCloseRoom}
-          onSpyCaught={handleSpyCaught}
-          onSpyWins={handleSpyWins}
-          onSpyWrongGuess={handleSpyWrongGuess}
+          onEndGame={handleEndGame}
         />
       </>
     );
@@ -343,12 +387,12 @@ export default function SpyFallRoomPage() {
     return (
       <>
         <ErrorToast message={error} />
-        <SpyFallRoundEndScreen
+        <UndercoverRoundEndScreen
           players={players}
           currentPlayerId={currentPlayer.id}
-          spyId={spyId}
-          actualLocation={actualLocation}
-          roundResult={roundResult}
+          result={roundResult}
+          civilianWord={civilianWord}
+          undercoverWord={undercoverWord}
           currentRound={currentRound}
           isHost={isHost}
           onNextRound={handleNextRound}
@@ -361,10 +405,10 @@ export default function SpyFallRoomPage() {
 
   // Fallback
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-cyan-900 to-blue-900">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900">
       <ErrorToast message={error} />
       <div className="text-center">
-        <div className="text-6xl mb-4 animate-bounce">🕵️</div>
+        <div className="text-6xl mb-4 animate-bounce">🎭</div>
         <p className="text-white text-xl">กำลังโหลด...</p>
       </div>
     </div>

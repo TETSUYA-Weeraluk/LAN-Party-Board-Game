@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { SpyFallPlayer } from "@/types/game";
-import { SPYFALL_LOCATIONS } from "@/constant/spy-fall";
+import type { SpyFallPlayer } from "../types";
+import { SPYFALL_LOCATIONS } from "../constants";
 
 interface SpyFallLobbyScreenProps {
   roomId: string;
@@ -11,6 +11,7 @@ interface SpyFallLobbyScreenProps {
   currentPlayerId: string;
   isHost: boolean;
   customLocations: string[];
+  excludedLocations: string[];
   onStartGame: () => void;
   onCloseRoom: () => void;
   onLeaveRoom: () => void;
@@ -26,6 +27,7 @@ export default function SpyFallLobbyScreen({
   currentPlayerId,
   isHost,
   customLocations,
+  excludedLocations,
   onStartGame,
   onCloseRoom,
   onLeaveRoom,
@@ -38,8 +40,9 @@ export default function SpyFallLobbyScreen({
   const [newLocation, setNewLocation] = useState("");
   const [showLocationManager, setShowLocationManager] = useState(false);
 
-  // All available locations (preset + custom)
+  // All available locations (preset + custom, excluding removed ones)
   const allLocations = [...SPYFALL_LOCATIONS, ...customLocations];
+  const activeLocations = allLocations.filter((loc) => !excludedLocations.includes(loc));
   const timerMinutes = players.length; // Timer = number of players * 1 minute
 
   useEffect(() => {
@@ -52,7 +55,7 @@ export default function SpyFallLobbyScreen({
   }, [roomId]);
 
   const handleAddLocation = () => {
-    if (newLocation.trim() && !allLocations.includes(newLocation.trim())) {
+    if (newLocation.trim() && !activeLocations.includes(newLocation.trim())) {
       onAddLocation(newLocation.trim());
       setNewLocation("");
     }
@@ -170,7 +173,7 @@ export default function SpyFallLobbyScreen({
               onClick={() => setShowLocationManager(!showLocationManager)}
               className="w-full mb-4 py-3 bg-white/10 text-white rounded-xl border border-white/20 hover:bg-white/20 transition-colors flex items-center justify-center gap-2"
             >
-              📍 จัดการสถานที่ ({allLocations.length})
+              📍 จัดการสถานที่ ({activeLocations.length})
               <span className="text-cyan-300">{showLocationManager ? "▲" : "▼"}</span>
             </button>
 
@@ -196,12 +199,12 @@ export default function SpyFallLobbyScreen({
                   </button>
                 </div>
 
-                {/* Custom locations */}
-                {customLocations.length > 0 && (
+                {/* Custom locations (added by users) */}
+                {customLocations.filter((loc) => !excludedLocations.includes(loc)).length > 0 && (
                   <div className="mb-3">
                     <p className="text-xs text-cyan-300 mb-2">สถานที่ที่เพิ่มเอง:</p>
                     <div className="flex flex-wrap gap-2">
-                      {customLocations.map((loc) => (
+                      {customLocations.filter((loc) => !excludedLocations.includes(loc)).map((loc) => (
                         <span
                           key={loc}
                           className="inline-flex items-center gap-1 px-2 py-1 bg-cyan-500/20 text-cyan-200 rounded-lg text-sm"
@@ -219,19 +222,45 @@ export default function SpyFallLobbyScreen({
                   </div>
                 )}
 
-                {/* Preset locations */}
+                {/* Preset locations - all can be deleted */}
                 <div>
-                  <p className="text-xs text-cyan-300 mb-2">สถานที่ทั้งหมด ({SPYFALL_LOCATIONS.length}):</p>
-                  <div className="max-h-32 overflow-y-auto">
+                  <p className="text-xs text-cyan-300 mb-2">
+                    สถานที่ที่ใช้ได้ ({activeLocations.filter((loc) => SPYFALL_LOCATIONS.includes(loc)).length}/{SPYFALL_LOCATIONS.length}):
+                  </p>
+                  <div className="max-h-48 overflow-y-auto">
                     <div className="flex flex-wrap gap-1">
-                      {SPYFALL_LOCATIONS.map((loc) => (
-                        <span
-                          key={loc}
-                          className="px-2 py-0.5 bg-white/10 text-white/70 rounded text-xs"
-                        >
-                          {loc}
-                        </span>
-                      ))}
+                      {SPYFALL_LOCATIONS.map((loc) => {
+                        const isExcluded = excludedLocations.includes(loc);
+                        return (
+                          <span
+                            key={loc}
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs transition-all ${
+                              isExcluded
+                                ? "bg-red-500/20 text-red-300/50 line-through"
+                                : "bg-white/10 text-white/70 hover:bg-white/20"
+                            }`}
+                          >
+                            {loc}
+                            {isExcluded ? (
+                              <button
+                                onClick={() => onAddLocation(loc)}
+                                className="text-green-400 hover:text-green-300 font-bold"
+                                title="เพิ่มกลับ"
+                              >
+                                +
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => onRemoveLocation(loc)}
+                                className="text-red-400/50 hover:text-red-400"
+                                title="ลบ"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

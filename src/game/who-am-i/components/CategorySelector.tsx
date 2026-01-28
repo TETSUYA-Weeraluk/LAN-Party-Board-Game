@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CATEGORY_LIST } from "@/constant";
+import { CATEGORY_LIST } from "../constants";
 
 interface CategorySelectorProps {
   onStart: (category: string | null, timerMinutes: number) => void;

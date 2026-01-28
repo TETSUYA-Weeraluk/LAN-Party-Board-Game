@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { Player } from "@/types/game";
-import ScoreBoard from "./ScoreBoard";
+import type { Player } from "../types";
+import ScoreBoard from "@/components/ScoreBoard";
 import CategorySelector from "./CategorySelector";
 
 interface RoundEndScreenProps {

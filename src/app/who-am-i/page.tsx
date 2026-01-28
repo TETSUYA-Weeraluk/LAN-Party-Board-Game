@@ -3,11 +3,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getSocket, getSessionId } from "@/lib/socket";
-import type { RoomInfo } from "@/types/game";
+import type { RoomInfo } from "@/types/shared";
 import RoomList from "@/components/RoomList";
 import CreateRoomForm from "@/components/CreateRoomForm";
 import JoinRoomForm from "@/components/JoinRoomForm";
-import RulesButton from "@/components/RulesButton";
+import { RulesButton } from "@/game/who-am-i";
 import Link from "next/link";
 
 type PageState = "room-list" | "creating-room" | "joining-room";

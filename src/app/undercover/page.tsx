@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getSocket, getSessionId } from "@/lib/socket";
 import type { RoomInfo } from "@/types/shared";
@@ -17,26 +17,34 @@ function ErrorToast({ message }: { message: string | null }) {
   return (
     <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
       <div className="bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg animate-bounce">
-        ⚠️ {message}
+        {message}
       </div>
     </div>
   );
 }
 
-export default function SpyFallRoomListPage() {
+export default function UndercoverRoomListPage() {
   const router = useRouter();
   const [pageState, setPageState] = useState<PageState>("room-list");
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<RoomInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const hasAttemptedRejoin = useRef(false);
+
   useEffect(() => {
     const socket = getSocket();
     const sessionId = getSessionId();
 
-    // Try to rejoin first when connecting
     const handleConnect = () => {
-      console.log("Socket connected, attempting to rejoin with session:", sessionId);
+      // เช็คก่อนว่าเคยสั่ง Rejoin ไปหรือยัง ถ้าเคยแล้วให้หยุด (กัน Loop)
+      if (hasAttemptedRejoin.current) return;
+
+      console.log(
+        "Socket connected, attempting to rejoin with session:",
+        sessionId
+      );
+      hasAttemptedRejoin.current = true; // Mark ว่าทำแล้ว
       socket.emit("rejoin", { sessionId });
     };
 
@@ -46,16 +54,20 @@ export default function SpyFallRoomListPage() {
 
     socket.on("connect", handleConnect);
 
-    // Room list received - filter for spy-fall only
+    // Room list received - filter for undercover only
     socket.on("roomList", (data) => {
-      const spyFallRooms = data.rooms.filter(r => r.gameType === "spy-fall");
-      setRooms(spyFallRooms);
+      const undercoverRooms = data.rooms.filter(
+        (r) => r.gameType === "undercover"
+      );
+      setRooms(undercoverRooms);
     });
 
     // Rejoin success - redirect to room
     socket.on("rejoinSuccess", (data) => {
-      if (data.gameType === "spy-fall") {
-        router.push(`/spy-fall/${data.roomId}`);
+      if (data.gameType === "undercover") {
+        if (window.location.pathname !== `/undercover/${data.roomId}`) {
+          router.push(`/undercover/${data.roomId}`);
+        }
       }
     });
 
@@ -66,8 +78,10 @@ export default function SpyFallRoomListPage() {
 
     // Room joined - redirect to room page
     socket.on("roomJoined", ({ roomId, gameType }) => {
-      if (gameType === "spy-fall") {
-        router.push(`/spy-fall/${roomId}`);
+      if (gameType === "undercover") {
+        if (window.location.pathname !== `/undercover/${roomId}`) {
+          router.push(`/undercover/${roomId}`);
+        }
       }
     });
 
@@ -115,12 +129,12 @@ export default function SpyFallRoomListPage() {
     (roomName: string, password: string | null, playerName: string) => {
       const socket = getSocket();
       const sessionId = getSessionId();
-      socket.emit("createRoom", { 
-        roomName, 
-        password, 
-        playerName, 
+      socket.emit("createRoom", {
+        roomName,
+        password,
+        playerName,
         sessionId,
-        gameType: "spy-fall"
+        gameType: "undercover",
       });
     },
     []
@@ -141,12 +155,22 @@ export default function SpyFallRoomListPage() {
       <>
         <ErrorToast message={error} />
         {/* Back to home button */}
-        <Link 
-          href="/" 
+        <Link
+          href="/"
           className="fixed top-4 left-4 z-40 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl text-white transition-colors flex items-center gap-2"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
           </svg>
           กลับหน้าหลัก
         </Link>
@@ -155,8 +179,8 @@ export default function SpyFallRoomListPage() {
           onCreateRoom={handleGoToCreateRoom}
           onSelectRoom={handleSelectRoom}
           onRefresh={handleRefreshRoomList}
-          gameTitle="🕵️ Spy Fall"
-          accentColor="cyan"
+          gameTitle="🎭 Undercover"
+          accentColor="purple"
         />
       </>
     );
@@ -167,10 +191,10 @@ export default function SpyFallRoomListPage() {
     return (
       <>
         <ErrorToast message={error} />
-        <CreateRoomForm 
-          onSubmit={handleCreateRoom} 
+        <CreateRoomForm
+          onSubmit={handleCreateRoom}
           onBack={handleBackToRoomList}
-          accentColor="cyan"
+          accentColor="purple"
         />
       </>
     );
@@ -185,7 +209,7 @@ export default function SpyFallRoomListPage() {
           room={selectedRoom}
           onSubmit={handleJoinRoom}
           onBack={handleBackToRoomList}
-          accentColor="cyan"
+          accentColor="purple"
         />
       </>
     );
@@ -193,9 +217,9 @@ export default function SpyFallRoomListPage() {
 
   // Loading
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-cyan-900 to-blue-900">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900">
       <div className="text-center">
-        <div className="text-6xl mb-4 animate-bounce">🕵️</div>
+        <div className="text-6xl mb-4 animate-bounce">🎭</div>
         <p className="text-white text-xl">กำลังโหลด...</p>
       </div>
     </div>

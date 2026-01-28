@@ -8,7 +8,7 @@ interface RoomListProps {
   onSelectRoom: (room: RoomInfo) => void;
   onRefresh: () => void;
   gameTitle?: string;
-  accentColor?: "pink" | "cyan";
+  accentColor?: "pink" | "cyan" | "purple";
 }
 
 export default function RoomList({
@@ -19,22 +19,33 @@ export default function RoomList({
   gameTitle = "🎭 Who Am I?",
   accentColor = "pink",
 }: RoomListProps) {
-  const isPink = accentColor === "pink";
-  
-  const bgGradient = isPink
-    ? "from-indigo-900 via-purple-900 to-pink-800"
-    : "from-slate-900 via-cyan-900 to-blue-900";
-  
-  const buttonGradient = isPink
-    ? "from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 focus:ring-pink-500"
-    : "from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 focus:ring-cyan-500";
-  
-  const hoverBorder = isPink
-    ? "hover:border-pink-500/50"
-    : "hover:border-cyan-500/50";
-  
-  const textAccent = isPink ? "text-purple-200" : "text-cyan-200";
-  const textAccent2 = isPink ? "text-purple-300" : "text-cyan-300";
+  // Color schemes for different games
+  const colorSchemes = {
+    pink: {
+      bgGradient: "from-indigo-900 via-purple-900 to-pink-800",
+      buttonGradient: "from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 focus:ring-pink-500",
+      hoverBorder: "hover:border-pink-500/50",
+      textAccent: "text-purple-200",
+      textAccent2: "text-purple-300",
+    },
+    cyan: {
+      bgGradient: "from-slate-900 via-cyan-900 to-blue-900",
+      buttonGradient: "from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 focus:ring-cyan-500",
+      hoverBorder: "hover:border-cyan-500/50",
+      textAccent: "text-cyan-200",
+      textAccent2: "text-cyan-300",
+    },
+    purple: {
+      bgGradient: "from-slate-900 via-purple-900 to-indigo-900",
+      buttonGradient: "from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 focus:ring-purple-500",
+      hoverBorder: "hover:border-purple-500/50",
+      textAccent: "text-purple-200",
+      textAccent2: "text-purple-300",
+    },
+  };
+
+  const colors = colorSchemes[accentColor];
+  const { bgGradient, buttonGradient, hoverBorder, textAccent, textAccent2 } = colors;
 
   return (
     <div className={`min-h-screen flex items-center justify-center bg-gradient-to-br ${bgGradient} p-4`}>

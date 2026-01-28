@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { SpyFallPlayer } from "@/types/game";
-import Timer from "../Timer";
-import { SPYFALL_LOCATIONS } from "@/constant/spy-fall";
+import type { SpyFallPlayer } from "../types";
+import Timer from "@/components/Timer";
+import { SPYFALL_LOCATIONS } from "../constants";
 
 interface SpyFallGameScreenProps {
   currentPlayerName: string;
@@ -15,9 +15,11 @@ interface SpyFallGameScreenProps {
   isHost: boolean;
   currentRound: number;
   customLocations: string[];
+  excludedLocations: string[];
   onCloseRoom: () => void;
   onSpyCaught: () => void;
   onSpyWins: () => void;
+  onSpyWrongGuess: () => void;
 }
 
 export default function SpyFallGameScreen({
@@ -30,16 +32,21 @@ export default function SpyFallGameScreen({
   isHost,
   currentRound,
   customLocations,
+  excludedLocations,
   onCloseRoom,
   onSpyCaught,
   onSpyWins,
+  onSpyWrongGuess,
 }: SpyFallGameScreenProps) {
   const [showConfirmClose, setShowConfirmClose] = useState(false);
   const [showConfirmSpyCaught, setShowConfirmSpyCaught] = useState(false);
   const [showConfirmSpyWins, setShowConfirmSpyWins] = useState(false);
+  const [showConfirmSpyWrongGuess, setShowConfirmSpyWrongGuess] = useState(false);
 
-  // All available locations (preset + custom)
-  const allLocations = [...SPYFALL_LOCATIONS, ...customLocations];
+  // All available locations (preset + custom, excluding removed ones)
+  const allLocations = [...SPYFALL_LOCATIONS, ...customLocations].filter(
+    (loc) => !excludedLocations.includes(loc)
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-blue-900 p-4">
@@ -188,7 +195,7 @@ export default function SpyFallGameScreen({
         {isHost && (
           <div className="mb-6 space-y-3">
             <p className="text-center text-cyan-300 text-sm mb-2">
-              🎮 Host: จบรอบเมื่อหา Spy เจอ หรือ Spy ทายถูก
+              🎮 Host: จบรอบเมื่อหา Spy เจอ หรือ Spy ทาย
             </p>
             
             {showConfirmSpyCaught ? (
@@ -227,20 +234,48 @@ export default function SpyFallGameScreen({
                   ยกเลิก
                 </button>
               </div>
-            ) : (
+            ) : showConfirmSpyWrongGuess ? (
               <div className="flex gap-3">
                 <button
-                  onClick={() => setShowConfirmSpyCaught(true)}
-                  className="flex-1 py-3 bg-green-500/20 border border-green-500/50 text-green-300 font-bold rounded-xl hover:bg-green-500/30 transition-colors"
+                  onClick={() => {
+                    onSpyWrongGuess();
+                    setShowConfirmSpyWrongGuess(false);
+                  }}
+                  className="flex-1 py-3 bg-yellow-500 text-white font-bold rounded-xl"
                 >
-                  🎯 หา Spy เจอ!
+                  ยืนยัน: Spy ทายผิด!
                 </button>
                 <button
-                  onClick={() => setShowConfirmSpyWins(true)}
-                  className="flex-1 py-3 bg-red-500/20 border border-red-500/50 text-red-300 font-bold rounded-xl hover:bg-red-500/30 transition-colors"
+                  onClick={() => setShowConfirmSpyWrongGuess(false)}
+                  className="flex-1 py-3 bg-white/10 text-white rounded-xl"
                 >
-                  🕵️ Spy ทายถูก!
+                  ยกเลิก
                 </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowConfirmSpyCaught(true)}
+                    className="flex-1 py-3 bg-green-500/20 border border-green-500/50 text-green-300 font-bold rounded-xl hover:bg-green-500/30 transition-colors"
+                  >
+                    🎯 หา Spy เจอ!
+                  </button>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowConfirmSpyWins(true)}
+                    className="flex-1 py-3 bg-red-500/20 border border-red-500/50 text-red-300 font-bold rounded-xl hover:bg-red-500/30 transition-colors"
+                  >
+                    🕵️ Spy ทายถูก!
+                  </button>
+                  <button
+                    onClick={() => setShowConfirmSpyWrongGuess(true)}
+                    className="flex-1 py-3 bg-yellow-500/20 border border-yellow-500/50 text-yellow-300 font-bold rounded-xl hover:bg-yellow-500/30 transition-colors"
+                  >
+                    ❌ Spy ทายผิด!
+                  </button>
+                </div>
               </div>
             )}
           </div>

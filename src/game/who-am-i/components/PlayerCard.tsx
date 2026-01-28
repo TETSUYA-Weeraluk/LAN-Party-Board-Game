@@ -1,6 +1,6 @@
 "use client";
 
-import type { Player, PlayerWithWord } from "@/types/game";
+import type { Player, PlayerWithWord } from "../types";
 
 interface PlayerCardProps {
   player: Player | PlayerWithWord;
