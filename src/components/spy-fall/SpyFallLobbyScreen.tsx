@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { SpyFallPlayer } from "@/types/game";
-import { SPYFALL_LOCATIONS } from "@/constant";
+import { SPYFALL_LOCATIONS } from "@/constant/spy-fall";
 
 interface SpyFallLobbyScreenProps {
   roomId: string;
@@ -45,7 +45,9 @@ export default function SpyFallLobbyScreen({
   useEffect(() => {
     if (typeof window !== "undefined") {
       const baseUrl = window.location.origin;
-      setShareUrl(`${baseUrl}/spy-fall/${roomId}`);
+      setTimeout(() => {
+        setShareUrl(`${baseUrl}/spy-fall/${roomId}`);
+      }, 0);
     }
   }, [roomId]);
 

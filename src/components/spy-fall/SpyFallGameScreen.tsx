@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { SpyFallPlayer } from "@/types/game";
 import Timer from "../Timer";
+import { SPYFALL_LOCATIONS } from "@/constant/spy-fall";
 
 interface SpyFallGameScreenProps {
   currentPlayerName: string;
@@ -13,6 +14,7 @@ interface SpyFallGameScreenProps {
   timerStartedAt: number;
   isHost: boolean;
   currentRound: number;
+  customLocations: string[];
   onCloseRoom: () => void;
   onSpyCaught: () => void;
   onSpyWins: () => void;
@@ -27,6 +29,7 @@ export default function SpyFallGameScreen({
   timerStartedAt,
   isHost,
   currentRound,
+  customLocations,
   onCloseRoom,
   onSpyCaught,
   onSpyWins,
@@ -34,6 +37,9 @@ export default function SpyFallGameScreen({
   const [showConfirmClose, setShowConfirmClose] = useState(false);
   const [showConfirmSpyCaught, setShowConfirmSpyCaught] = useState(false);
   const [showConfirmSpyWins, setShowConfirmSpyWins] = useState(false);
+
+  // All available locations (preset + custom)
+  const allLocations = [...SPYFALL_LOCATIONS, ...customLocations];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-cyan-900 to-blue-900 p-4">
@@ -143,6 +149,39 @@ export default function SpyFallGameScreen({
             <li>• สังเกตคนที่ตอบแปลกๆ อาจเป็น Spy!</li>
             <li>• Spy พยายามเดาสถานที่จากคำตอบ</li>
           </ul>
+        </div>
+
+        {/* All locations list */}
+        <div className="mb-6 p-4 bg-white/5 rounded-2xl border border-white/10">
+          <h3 className="text-white font-semibold mb-3">
+            📍 สถานที่ทั้งหมด ({allLocations.length} แห่ง)
+            {customLocations.length > 0 && (
+              <span className="text-cyan-400 text-sm font-normal ml-2">
+                (+{customLocations.length} เพิ่มเอง)
+              </span>
+            )}
+          </h3>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+            {allLocations.map((location) => (
+              <div
+                key={location}
+                className={`px-2 py-1.5 text-center text-xs rounded-lg transition-colors ${
+                  !isSpy && myLocation === location
+                    ? "bg-cyan-500/30 border border-cyan-500/50 text-cyan-200 font-semibold"
+                    : customLocations.includes(location)
+                    ? "bg-purple-500/20 border border-purple-500/30 text-purple-200 hover:bg-purple-500/30"
+                    : "bg-white/5 text-white/70 hover:bg-white/10"
+                }`}
+              >
+                {location}
+              </div>
+            ))}
+          </div>
+          <p className="text-white/50 text-xs mt-3 text-center">
+            {isSpy 
+              ? "หนึ่งในสถานที่เหล่านี้คือคำตอบ - ลองเดาดูสิ!" 
+              : "สถานที่ของคุณจะถูกไฮไลท์"}
+          </p>
         </div>
 
         {/* Host controls - End round */}

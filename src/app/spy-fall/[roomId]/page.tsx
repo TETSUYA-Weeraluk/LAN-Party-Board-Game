@@ -318,6 +318,7 @@ export default function SpyFallRoomPage() {
           timerStartedAt={timerStartedAt}
           isHost={isHost}
           currentRound={currentRound}
+          customLocations={customLocations}
           onCloseRoom={handleCloseRoom}
           onSpyCaught={handleSpyCaught}
           onSpyWins={handleSpyWins}
