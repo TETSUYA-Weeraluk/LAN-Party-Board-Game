@@ -81,10 +81,29 @@ export const UNDERCOVER_ROLE_DISTRIBUTION: Record<
   10: { civilians: 7, undercover: 2, mrwhite: 1 },
 };
 
-// Get random word pair for Undercover
-export function getRandomUndercoverWords(): { civilians: string; undercover: string } {
-  const randomIndex = Math.floor(Math.random() * undercoverWords.length);
-  return undercoverWords[randomIndex];
+// Get random word pair for Undercover (excluding used pairs)
+export function getRandomUndercoverWords(
+  usedIndices: number[] = []
+): { civilians: string; undercover: string; index: number } {
+  // Filter out used indices
+  const availableIndices = undercoverWords
+    .map((_, index) => index)
+    .filter((index) => !usedIndices.includes(index));
+
+  // If all words used, reset and use all
+  const indicesToUse =
+    availableIndices.length > 0
+      ? availableIndices
+      : undercoverWords.map((_, index) => index);
+
+  const randomIndex = indicesToUse[Math.floor(Math.random() * indicesToUse.length)];
+  const wordPair = undercoverWords[randomIndex];
+
+  return {
+    civilians: wordPair.civilians,
+    undercover: wordPair.undercover,
+    index: randomIndex,
+  };
 }
 
 // Distribute roles for Undercover game

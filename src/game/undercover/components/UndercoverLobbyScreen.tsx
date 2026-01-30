@@ -13,6 +13,7 @@ interface UndercoverLobbyScreenProps {
   onCloseRoom: () => void;
   onLeaveRoom: () => void;
   onToggleSpectator: (isSpectator: boolean) => void;
+  onKickPlayer: (playerId: string) => void;
   isStarting: boolean;
 }
 
@@ -38,10 +39,12 @@ export default function UndercoverLobbyScreen({
   onCloseRoom,
   onLeaveRoom,
   onToggleSpectator,
+  onKickPlayer,
   isStarting,
 }: UndercoverLobbyScreenProps) {
   const [showIpInfo, setShowIpInfo] = useState(false);
   const [shareUrl, setShareUrl] = useState<string>("");
+  const [kickConfirmId, setKickConfirmId] = useState<string | null>(null);
 
   const activePlayers = players.filter(p => !p.isSpectator);
   const spectators = players.filter(p => p.isSpectator);
@@ -136,6 +139,35 @@ export default function UndercoverLobbyScreen({
                         ชนะ: {player.wins} รอบ • คะแนน: {player.score}
                       </p>
                     </div>
+                    {/* Kick button for host */}
+                    {isHost && player.id !== currentPlayerId && !player.isHost && (
+                      kickConfirmId === player.id ? (
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => {
+                              onKickPlayer(player.id);
+                              setKickConfirmId(null);
+                            }}
+                            className="px-2 py-1 bg-red-500 text-white text-xs rounded-lg"
+                          >
+                            ยืนยัน
+                          </button>
+                          <button
+                            onClick={() => setKickConfirmId(null)}
+                            className="px-2 py-1 bg-white/10 text-white text-xs rounded-lg"
+                          >
+                            ยกเลิก
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setKickConfirmId(player.id)}
+                          className="px-2 py-1 bg-red-500/20 text-red-300 text-xs rounded-lg hover:bg-red-500/30 transition-colors"
+                        >
+                          เตะ
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               ))}
@@ -147,17 +179,28 @@ export default function UndercoverLobbyScreen({
                 <h3 className="text-sm font-semibold text-purple-300 mb-2">👀 ผู้ดู ({spectators.length})</h3>
                 <div className="flex flex-wrap gap-2">
                   {spectators.map((player) => (
-                    <span
+                    <div
                       key={player.id}
-                      className={`px-3 py-1 rounded-full text-sm ${
+                      className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
                         player.id === currentPlayerId
                           ? "bg-purple-500/30 text-purple-200"
                           : "bg-white/10 text-white/70"
                       }`}
                     >
-                      {player.name}
-                      {player.id === currentPlayerId && " (คุณ)"}
-                    </span>
+                      <span>
+                        {player.name}
+                        {player.id === currentPlayerId && " (คุณ)"}
+                      </span>
+                      {isHost && player.id !== currentPlayerId && (
+                        <button
+                          onClick={() => onKickPlayer(player.id)}
+                          className="text-red-400 hover:text-red-300 text-xs"
+                          title="เตะผู้ดู"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>

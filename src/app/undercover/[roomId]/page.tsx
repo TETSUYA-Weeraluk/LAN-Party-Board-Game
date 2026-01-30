@@ -57,6 +57,9 @@ export default function UndercoverRoomPage() {
   const [civilianWord, setCivilianWord] = useState<string>("");
   const [undercoverWord, setUndercoverWord] = useState<string>("");
   const [currentRound, setCurrentRound] = useState(0);
+  const [currentTurnPlayerId, setCurrentTurnPlayerId] = useState<string | null>(null);
+  const [currentTurnPlayerName, setCurrentTurnPlayerName] = useState<string>("");
+  const [isYouGuessing, setIsYouGuessing] = useState(false);
 
   useEffect(() => {
     const socket = getSocket();
@@ -89,6 +92,10 @@ export default function UndercoverRoomPage() {
           setAlivePlayers(data.alivePlayers || []);
           setSpectators(data.spectators || []);
           setCurrentRound(data.currentRound || 0);
+          setCurrentTurnPlayerId(data.currentTurnPlayerId ?? null);
+          setCurrentTurnPlayerName(data.currentTurnPlayerName || "");
+          setWaitingForMrWhiteGuess(data.waitingForMrWhiteGuess || false);
+          setIsYouGuessing(data.isYouGuessing || false);
           
           // Check if current player is spectator
           const currentPlayerData = data.alivePlayers?.find((p: UndercoverPlayer) => p.id === data.player.id);
@@ -168,6 +175,9 @@ export default function UndercoverRoomPage() {
       setAlivePlayers(data.alivePlayers);
       setSpectators(data.spectators);
       setCurrentRound(data.currentRound);
+      setCurrentTurnPlayerId(data.currentTurnPlayerId);
+      setCurrentTurnPlayerName(data.currentTurnPlayerName || "");
+      setIsYouGuessing(false);
       setIsStarting(false);
       setVoteResult(null);
       setMrWhiteGuessResult(null);
@@ -186,6 +196,7 @@ export default function UndercoverRoomPage() {
     socket.on("undercoverVoteResult", (data) => {
       setVoteResult(data);
       setWaitingForMrWhiteGuess(data.isMrWhiteGuessing);
+      setIsYouGuessing(data.isYouGuessing ?? false);
       
       // Update alive players - remove voted player
       setAlivePlayers(prev => prev.filter(p => p.id !== data.votedPlayerId));
@@ -193,22 +204,35 @@ export default function UndercoverRoomPage() {
 
     // Mr.White guess result
     socket.on("undercoverMrWhiteGuessResult", (data) => {
+      console.log("Mr.White guess result received:", data);
       setMrWhiteGuessResult(data);
       setWaitingForMrWhiteGuess(false);
     });
 
     // Round ended
     socket.on("undercoverRoundEnded", (data) => {
-      setPlayers(data.players);
-      setRoundResult(data.result);
-      setCivilianWord(data.civilianWord);
-      setUndercoverWord(data.undercoverWord);
-      setCurrentRound(data.currentRound);
-      setIsStarting(false);
-      setVoteResult(null);
-      setMrWhiteGuessResult(null);
-      setWaitingForMrWhiteGuess(false);
-      setGameState("round-end");
+      console.log("Round ended received:", data);
+      
+      // เก็บข้อมูล round end ไว้ก่อน
+      const updateRoundEndState = () => {
+        setPlayers(data.players);
+        setRoundResult(data.result);
+        setCivilianWord(data.civilianWord);
+        setUndercoverWord(data.undercoverWord);
+        setCurrentRound(data.currentRound);
+        setIsStarting(false);
+        setVoteResult(null);
+        setMrWhiteGuessResult(null);
+        setWaitingForMrWhiteGuess(false);
+        setGameState("round-end");
+      };
+      
+      // ถ้าเป็น Mr.White ชนะ รอให้ modal แสดงผลก่อน 3 วินาที
+      if (data.result === "mrwhite-win") {
+        setTimeout(updateRoundEndState, 3000);
+      } else {
+        updateRoundEndState();
+      }
     });
 
     // Room closed
@@ -220,6 +244,13 @@ export default function UndercoverRoomPage() {
     // Left room
     socket.on("leftRoom", () => {
       router.push("/undercover");
+    });
+
+    // Kicked from room
+    socket.on("kicked", (reason) => {
+      setError(reason);
+      clearSessionId();
+      setTimeout(() => router.push("/undercover"), 2000);
     });
 
     // Error handling
@@ -243,6 +274,7 @@ export default function UndercoverRoomPage() {
       socket.off("undercoverRoundEnded");
       socket.off("roomClosed");
       socket.off("leftRoom");
+      socket.off("kicked");
       socket.off("error");
     };
   }, [roomId, router]);
@@ -284,10 +316,22 @@ export default function UndercoverRoomPage() {
     socket.emit("undercoverMrWhiteGuess", { guess });
   }, []);
 
+  // Handle skip Mr.White guess (Host only)
+  const handleSkipMrWhiteGuess = useCallback(() => {
+    const socket = getSocket();
+    socket.emit("undercoverSkipMrWhiteGuess");
+  }, []);
+
   // Handle end game
   const handleEndGame = useCallback(() => {
     const socket = getSocket();
     socket.emit("endUndercoverGame");
+  }, []);
+
+  // Handle kick player
+  const handleKickPlayer = useCallback((playerId: string) => {
+    const socket = getSocket();
+    socket.emit("kickPlayer", { playerId });
   }, []);
 
   // Handle next round
@@ -349,6 +393,7 @@ export default function UndercoverRoomPage() {
           onCloseRoom={handleCloseRoom}
           onLeaveRoom={handleLeaveRoom}
           onToggleSpectator={handleToggleSpectator}
+          onKickPlayer={handleKickPlayer}
           isStarting={isStarting}
         />
       </>
@@ -370,11 +415,15 @@ export default function UndercoverRoomPage() {
           isHost={isHost}
           isSpectator={isSpectator}
           currentRound={currentRound}
+          currentTurnPlayerId={currentTurnPlayerId}
+          currentTurnPlayerName={currentTurnPlayerName}
           voteResult={voteResult}
           mrWhiteGuessResult={mrWhiteGuessResult}
           waitingForMrWhiteGuess={waitingForMrWhiteGuess}
+          isYouGuessing={isYouGuessing}
           onVote={handleVote}
           onMrWhiteGuess={handleMrWhiteGuess}
+          onSkipMrWhiteGuess={handleSkipMrWhiteGuess}
           onCloseRoom={handleCloseRoom}
           onEndGame={handleEndGame}
         />
@@ -397,6 +446,7 @@ export default function UndercoverRoomPage() {
           isHost={isHost}
           onNextRound={handleNextRound}
           onCloseRoom={handleCloseRoom}
+          onKickPlayer={handleKickPlayer}
           isStarting={isStarting}
         />
       </>

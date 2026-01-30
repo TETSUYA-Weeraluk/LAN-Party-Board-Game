@@ -82,10 +82,16 @@ export function registerUndercoverHandlers(io: GameIO, socket: GameSocket) {
       return;
     }
 
-    // Get word pair
-    const wordPair = getRandomUndercoverWords();
+    // Get word pair (excluding used pairs)
+    const wordPair = getRandomUndercoverWords(room.usedWordPairIndices || []);
     room.civilianWord = wordPair.civilians;
     room.undercoverWord = wordPair.undercover;
+    
+    // Track used word pair
+    if (!room.usedWordPairIndices) {
+      room.usedWordPairIndices = [];
+    }
+    room.usedWordPairIndices.push(wordPair.index);
 
     // Distribute roles
     const roles = distributeUndercoverRoles(activePlayers.length);
@@ -122,11 +128,18 @@ export function registerUndercoverHandlers(io: GameIO, socket: GameSocket) {
     room.waitingForMrWhiteGuess = false;
     room.roundResult = null;
 
+    // สุ่มคนแรกที่ต้องเริ่มพูด (ต้องมีคำ ไม่ใช่ Mr.White)
+    const playersWithWord = activePlayers.filter((p) => p.role !== "mrwhite");
+    const randomFirstPlayer = playersWithWord[Math.floor(Math.random() * playersWithWord.length)];
+    room.currentTurnPlayerId = randomFirstPlayer.id;
+
     // Send game started to each player
     const alivePlayersForEmit = room.players.filter(
       (p) => p.isAlive && !p.isSpectator
     );
     const spectators = room.players.filter((p) => p.isSpectator);
+
+    const firstPlayerName = randomFirstPlayer.name;
 
     room.players.forEach((player) => {
       if (player.isSpectator) {
@@ -137,6 +150,8 @@ export function registerUndercoverHandlers(io: GameIO, socket: GameSocket) {
           currentRound: room.currentRound,
           alivePlayers: alivePlayersForEmit,
           spectators: spectators,
+          currentTurnPlayerId: room.currentTurnPlayerId!,
+          currentTurnPlayerName: firstPlayerName,
         });
       } else {
         // Players see only their own role and word
@@ -150,6 +165,8 @@ export function registerUndercoverHandlers(io: GameIO, socket: GameSocket) {
             word: undefined, // Hide word from other players
           })),
           spectators: spectators,
+          currentTurnPlayerId: room.currentTurnPlayerId!,
+          currentTurnPlayerName: firstPlayerName,
         });
       }
     });
@@ -157,8 +174,9 @@ export function registerUndercoverHandlers(io: GameIO, socket: GameSocket) {
     // Broadcast updated room list
     broadcastRoomList(io);
 
+    const firstPlayer = room.players.find((p) => p.id === room.currentTurnPlayerId);
     console.log(
-      `Room "${room.name}" - Undercover Round ${room.currentRound} started - Words: ${room.civilianWord}/${room.undercoverWord}`
+      `Room "${room.name}" - Undercover Round ${room.currentRound} started - Words: ${room.civilianWord}/${room.undercoverWord} - First: ${firstPlayer?.name} - Used indices: [${room.usedWordPairIndices.join(", ")}]`
     );
   });
 
@@ -199,13 +217,18 @@ export function registerUndercoverHandlers(io: GameIO, socket: GameSocket) {
     // Check if voted player is Mr.White
     const isMrWhite = votedPlayer.role === "mrwhite";
 
-    // Send vote result to all players
-    io.to(`room-${roomId}`).emit("undercoverVoteResult", {
-      votedPlayerId: playerId,
-      votedPlayerName: votedPlayer.name,
-      votedPlayerRole: votedPlayer.role!,
-      votedPlayerWord: votedPlayer.word,
-      isMrWhiteGuessing: isMrWhite,
+    // ส่ง vote result แยกแต่ละ client เพื่อใส่ isYouGuessing (รองรับ reconnect - Mr.White อาจมี socket.id ใหม่)
+    const mrWhiteWhoGuesses = isMrWhite ? votedPlayer : null;
+    room.players.forEach((p) => {
+      const isYouGuessing = mrWhiteWhoGuesses !== null && p.id === mrWhiteWhoGuesses.id;
+      io.to(p.id).emit("undercoverVoteResult", {
+        votedPlayerId: playerId,
+        votedPlayerName: votedPlayer.name,
+        votedPlayerRole: votedPlayer.role!,
+        votedPlayerWord: votedPlayer.word,
+        isMrWhiteGuessing: isMrWhite,
+        isYouGuessing,
+      });
     });
 
     if (isMrWhite) {
@@ -239,11 +262,19 @@ export function registerUndercoverHandlers(io: GameIO, socket: GameSocket) {
       return;
     }
 
+    // หา Mr.White player ที่ส่ง guess (ตรวจสอบจาก role และ socket.id ปัจจุบัน)
+    const currentPlayer = room.players.find((p) => p.id === socket.id);
+    if (!currentPlayer || currentPlayer.role !== "mrwhite") {
+      socket.emit("error", "คุณไม่ใช่ Mr.White");
+      return;
+    }
+
+    // ตรวจสอบว่า Mr.White ถูก vote ออกจริง (ไม่ alive และเป็น lastVotedPlayer หรือ role เป็น mrwhite ที่ไม่ alive)
     const mrWhitePlayer = room.players.find(
-      (p) => p.id === room.lastVotedPlayerId
+      (p) => p.role === "mrwhite" && !p.isAlive
     );
-    if (!mrWhitePlayer || mrWhitePlayer.id !== socket.id) {
-      socket.emit("error", "คุณไม่ใช่ Mr.White ที่ถูกโหวต");
+    if (!mrWhitePlayer) {
+      socket.emit("error", "ไม่พบ Mr.White ที่ถูกโหวต");
       return;
     }
 
@@ -293,6 +324,51 @@ export function registerUndercoverHandlers(io: GameIO, socket: GameSocket) {
       // Mr.White guessed wrong, check win condition
       handleWinConditionCheck(io, room, roomId);
     }
+  });
+
+  // ข้าม Mr.White guess (Host เท่านั้น - เมื่อ Mr.White ค้างหรือตอบไม่ได้)
+  socket.on("undercoverSkipMrWhiteGuess", () => {
+    const roomId = playerRoomMap.get(socket.id);
+    if (!roomId) {
+      socket.emit("error", "คุณไม่ได้อยู่ในห้อง");
+      return;
+    }
+
+    const room = gameRooms.get(roomId);
+    if (!room || room.hostId !== socket.id) {
+      socket.emit("error", "คุณไม่ใช่ Host");
+      return;
+    }
+
+    if (!isUndercoverRoom(room)) {
+      socket.emit("error", "ห้องนี้ไม่ใช่ Undercover");
+      return;
+    }
+
+    if (!room.waitingForMrWhiteGuess) {
+      socket.emit("error", "ไม่ได้อยู่ในช่วงทายคำ");
+      return;
+    }
+
+    room.waitingForMrWhiteGuess = false;
+
+    const mrWhitePlayer = room.players.find(
+      (p) => p.role === "mrwhite" && !p.isAlive
+    );
+
+    // ส่งผลเหมือนทายผิด เพื่อให้ client ปิด modal และอัปเดต state
+    if (mrWhitePlayer) {
+      io.to(`room-${roomId}`).emit("undercoverMrWhiteGuessResult", {
+        playerId: mrWhitePlayer.id,
+        playerName: mrWhitePlayer.name,
+        isCorrect: false,
+      });
+    }
+
+    // Treat as wrong guess - check win condition
+    handleWinConditionCheck(io, room, roomId);
+
+    console.log(`Room "${room.name}" - Host skipped Mr.White guess`);
   });
 
   // End Undercover game (host only) - for manual reset

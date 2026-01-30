@@ -22,6 +22,8 @@ export interface UndercoverGameStartedData {
   currentRound: number;
   alivePlayers: UndercoverPlayer[];
   spectators: UndercoverPlayer[];
+  currentTurnPlayerId: string;   // ผู้เล่นที่ต้องเริ่มพูดก่อน
+  currentTurnPlayerName: string; // ชื่อคนเริ่ม (เก็บไว้แสดงทั้งรอบ)
 }
 
 // Undercover vote result data (เมื่อ Host โหวตผู้เล่นออก)
@@ -31,6 +33,7 @@ export interface UndercoverVoteResultData {
   votedPlayerRole: UndercoverRole;
   votedPlayerWord?: string;
   isMrWhiteGuessing: boolean;  // true ถ้า Mr.White ต้องทายคำ
+  isYouGuessing?: boolean;     // true เฉพาะคนที่ต้องทาย (รองรับ reconnect)
 }
 
 // Undercover Mr.White guess result data

@@ -1,52 +1,75 @@
 export const undercoverWords = [
-  { civilians: "โค้ก", undercover: "เป๊ปซี่" },
-  { civilians: "ส้ม", undercover: "มะนาว" },
-  { civilians: "ทะเล", undercover: "น้ำตก" },
-  { civilians: "ฟุตบอล", undercover: "บาสเกตบอล" },
-  { civilians: "หูฟัง", undercover: "ลำโพง" },
-  { civilians: "หมอน", undercover: "หมอนข้าง" },
-  { civilians: "โน้ตบุ๊ก", undercover: "แท็บเล็ต" },
-  { civilians: "แปรงสีฟัน", undercover: "ไหมขัดฟัน" },
-  { civilians: "มอเตอร์ไซค์", undercover: "จักรยาน" },
-  { civilians: "ช้อน", undercover: "ส้อม" },
-  { civilians: "แมว", undercover: "เสือ" },
-  { civilians: "พิซซ่า", undercover: "แฮมเบอร์เกอร์" },
-  { civilians: "หนังผี", undercover: "หนังซอมบี้" },
-  { civilians: "แว่นตา", undercover: "คอนแทคเลนส์" },
-  { civilians: "สระน้ำ", undercover: "อ่างอาบน้ำ" },
-  { civilians: "ลิปสติก", undercover: "ลิปมัน" },
-  { civilians: "ภูเขา", undercover: "ถ้ำ" },
-  { civilians: "กาแฟ", undercover: "โกโก้" },
-  { civilians: "ร่ม", undercover: "เสื้อกันฝน" },
-  { civilians: "ตู้เย็น", undercover: "ไมโครเวฟ" },
-  { civilians: "ข้าวสวย", undercover: "ข้าวเหนียว" },
-  { civilians: "ไข่ดาว", undercover: "ไข่เจียว" },
-  { civilians: "ผัดไทย", undercover: "ผัดซีอิ๊ว" },
-  { civilians: "เฟซบุ๊ก", undercover: "อินสตาแกรม" },
-  { civilians: "ติ๊กต็อก", undercover: "ยูทูบ" },
-  { civilians: "ไอโฟน", undercover: "แอนดรอยด์" },
-  { civilians: "แกร็บ", undercover: "ไลน์แมน" },
-  { civilians: "ช้อปปี้", undercover: "ลาซาด้า" },
-  { civilians: "เซเว่น", undercover: "แฟมิลี่มาร์ท" },
-  { civilians: "ปากกา", undercover: "ดินสอ" },
-  { civilians: "พัดลม", undercover: "แอร์" },
-  { civilians: "เสื้อเชิ้ต", undercover: "เสื้อยืด" },
-  { civilians: "กระโปรง", undercover: "กางเกง" },
-  { civilians: "รองเท้าผ้าใบ", undercover: "รองเท้าส้นสูง" },
-  { civilians: "ทอง", undercover: "เพชร" },
-  { civilians: "พระอาทิตย์", undercover: "พระจันทร์" },
-  { civilians: "ฝน", undercover: "หิมะ" },
-  { civilians: "ครู", undercover: "อาจารย์" },
-  { civilians: "หมอ", undercover: "พยาบาล" },
-  { civilians: "โรงหนัง", undercover: "คอนเสิร์ต" },
-  { civilians: "แท็กซี่", undercover: "ตุ๊กตุ๊ก" },
-  { civilians: "รถเมล์", undercover: "รถไฟ" },
-  { civilians: "เครื่องบิน", undercover: "เฮลิคอปเตอร์" },
-  { civilians: "นมวัว", undercover: "นมถั่วเหลือง" },
-  { civilians: "เค้ก", undercover: "บราวนี่" },
-  { civilians: "ขนมปัง", undercover: "โดนัท" },
-  { civilians: "ฟิตเนส", undercover: "สวนสาธารณะ" },
-  { civilians: "กีตาร์", undercover: "เปียโน" },
-  { civilians: "สบู่ก้อน", undercover: "ครีมอาบน้ำ" },
-  { civilians: "ยาสระผม", undercover: "ครีมนวดผม" },
+  // หมวดอาหารและของกิน (ต่างที่ลักษณะ/วิธีทาน)
+  { civilians: "ซูชิ", undercover: "ราเมง" }, // อาหารญี่ปุ่นเหมือนกัน แต่หน้าตาต่างกันชัดเจน
+  { civilians: "ไอศกรีม", undercover: "บิงซู" }, // ของหวานเย็นๆ เหมือนกัน
+  { civilians: "แซนด์วิช", undercover: "แฮมเบอร์เกอร์" }, // ขนมปังประกบเหมือนกัน
+  { civilians: "สเต็ก", undercover: "ปิ้งย่าง" }, // เนื้อสัตว์เป็นหลักเหมือนกัน
+  { civilians: "สลัดผัก", undercover: "ผลไม้รวม" }, // ของรักสุขภาพเหมือนกัน
+  { civilians: "เบียร์", undercover: "ไวน์" }, // เครื่องดื่มแอลกอฮอล์
+
+  // หมวดของใช้และไลฟ์สไตล์ (ต่างที่ฟังก์ชันหลัก)
+  { civilians: "ร่ม", undercover: "เสื้อกันฝน" }, // กันฝนเหมือนกัน แต่วิธีใช้ต่างกัน
+  { civilians: "รองเท้าแตะ", undercover: "รองเท้าผ้าใบ" }, // เครื่องแต่งกายส่วนเท้า
+  { civilians: "นาฬิกาปลุก", undercover: "นาฬิกาทราย" }, // เกี่ยวกับเวลา
+  { civilians: "กระเป๋าเป้", undercover: "กระเป๋าเดินทาง" }, // ใส่ของเพื่อเดินทาง
+  { civilians: "เทียนหอม", undercover: "โคมไฟ" }, // ให้แสงสว่าง/สร้างบรรยากาศ
+  { civilians: "ผ้าห่ม", undercover: "ถุงนอน" }, // อุปกรณ์การนอน
+
+  // หมวดเทคโนโลยีและงานอดิเรก (ต่างที่ประเภทสื่อ)
+  { civilians: "หนังสือพิมพ์", undercover: "นิตยสาร" }, // สื่อสิ่งพิมพ์เหมือนกัน
+  { civilians: "พอดแคสต์ (Podcast)", undercover: "วิทยุ" }, // ฟังเสียงเหมือนกัน
+  { civilians: "แท็บเล็ต", undercover: "อีบุ๊ก (E-reader)" }, // อุปกรณ์พกพาหน้าจอใหญ่
+  { civilians: "กล้องถ่ายรูป", undercover: "โดรน" }, // บันทึกภาพเหมือนกัน
+  { civilians: "บอร์ดเกม", undercover: "ไพ่" }, // กิจกรรมสันทนาการบนโต๊ะ
+
+  // หมวดสถานที่และธรรมชาติ (ต่างที่บรรยากาศ)
+  { civilians: "ทะเลทราย", undercover: "ขั้วโลกเหนือ" }, // สถานที่ที่สุดขั้วเหมือนกัน (ร้อน vs หนาว)
+  { civilians: "ถ้ำ", undercover: "อุโมงค์" }, // ทางมืดๆ ลึกลับเหมือนกัน
+  { civilians: "สวนสนุก", undercover: "สวนน้ำ" }, // สถานที่ท่องเที่ยวพักผ่อน
+  { civilians: "เต็นท์", undercover: "บ้านพักตากอากาศ" }, // ที่พักแรม
+
+  // หมวดอาชีพและตัวละคร (ต่างที่บทบาท)
+  { civilians: "นักบิน", undercover: "กัปตันเรือ" }, // คนขับพาหนะขนาดใหญ่
+  { civilians: "ตำรวจ", undercover: "ทหาร" }, // เครื่องแบบและถืออาวุธ
+  { civilians: "นักมายากล", undercover: "ตัวตลก" }, // นักแสดงสร้างความบันเทิง
+  { civilians: "เชฟ (Chef)", undercover: "เด็กเสิร์ฟ" }, // ทำงานในร้านอาหารเหมือนกัน
+
+  // หมวดกิจกรรมและนามธรรม (ต่างที่แอคชั่น)
+  { civilians: "การแต่งงาน", undercover: "งานวันเกิด" }, // งานเฉลิมฉลอง
+  { civilians: "ฟุตบอล", undercover: "วอลเลย์บอล" }, // กีฬาที่ใช้ลูกบอลเหมือนกัน
+  { civilians: "การดูหนัง", undercover: "การอ่านหนังสือ" }, // การเสพสื่อบันเทิง
+  { civilians: "ปีนเขา", undercover: "ดำน้ำ" }, // กิจกรรมแอดเวนเจอร์
+  { civilians: "รอยสัก", undercover: "สติกเกอร์" }, // ลวดลายบนร่างกาย
+
+  // หมวดของกิน (ต่างที่เนื้อสัมผัส/วิธีการทำ)
+  { civilians: "บราวนี่", undercover: "พุดดิ้ง" }, // ขนมหวานเหมือนกัน แต่ความแน่นต่างกัน
+  { civilians: "นมสด", undercover: "โยเกิร์ต" }, // ผลิตภัณฑ์นมเหมือนกัน แต่อันหนึ่งดื่มอันหนึ่งตัก
+  { civilians: "สเต็ก", undercover: "ลูกชิ้นปิ้ง" }, // เนื้อสัตว์เสียบไม้ vs เนื้อชิ้นใหญ่
+  { civilians: "แตงโม", undercover: "สตรอว์เบอร์รี" }, // ผลไม้สีแดงเหมือนกัน แต่ขนาดคนละเรื่อง
+
+  // หมวดของใช้ (ต่างที่ฟังก์ชันการใช้งาน)
+  { civilians: "แม็กเย็บกระดาษ", undercover: "คลิปหนีบกระดาษ" }, // รวมกระดาษเหมือนกัน
+  { civilians: "ไม้กวาด", undercover: "ไม้ถูพื้น" }, // ทำความสะอาดพื้นเหมือนกัน
+  { civilians: "เตาอบ", undercover: "ไมโครเวฟ" }, // เครื่องครัวใช้ทำความร้อน
+  { civilians: "คีย์บอร์ด", undercover: "เมาส์" }, // อุปกรณ์คอมพิวเตอร์
+
+  // หมวดเครื่องแต่งกายและ Accessory
+  { civilians: "เนกไท", undercover: "เข็มขัด" }, // เครื่องแต่งกายของผู้ชาย
+  { civilians: "ลิปสติก", undercover: "มาสคาร่า" }, // แต่งหน้าเหมือนกัน แต่คนละส่วน
+  { civilians: "ต่างหู", undercover: "สร้อยข้อมือ" }, // เครื่องประดับ
+
+  // หมวดกิจกรรมและไลฟ์สไตล์
+  { civilians: "ตกปลา", undercover: "ว่ายน้ำ" }, // กิจกรรมทางน้ำ
+  { civilians: "โบว์ลิ่ง", undercover: "กอล์ฟ" }, // กีฬาที่ใช้ลูกบอล
+  { civilians: "รถเมล์", undercover: "รถตุ๊กตุ๊ก" }, // ขนส่งสาธารณะไทยๆ
+
+  // หมวดธรรมชาติและสัตว์
+  { civilians: "พายุ", undercover: "หมอก" }, // สภาพอากาศที่มองเห็นยากเหมือนกัน
+  { civilians: "นกอินทรี", undercover: "นกเพนกวิน" }, // นกเหมือนกัน แต่อีกตัวบินไม่ได้
+  { civilians: "ภูเขาไฟ", undercover: "บ่อน้ำพุร้อน" }, // ความร้อนจากใต้ดิน
+
+  // หมวดเครื่องเขียนและออฟฟิศ
+  { civilians: "ปากกาเคมี", undercover: "ดินสอไม้" }, // เครื่องเขียน
+  { civilians: "กระดานไวท์บอร์ด", undercover: "สมุดโน้ต" }, // ที่จดบันทึก
+  { civilians: "สีเทียน", undercover: "สีน้ำ" }, // อุปกรณ์ระบายสี
 ];

@@ -139,6 +139,8 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
           lastVotedPlayerId: null,
           waitingForMrWhiteGuess: false,
           roundResult: null,
+          currentTurnPlayerId: null,
+          usedWordPairIndices: [],
         };
 
         gameRooms.set(roomId, room);
@@ -353,6 +355,76 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
 
     // Broadcast updated room list
     broadcastRoomList(io);
+  });
+
+  // Kick player (host only)
+  socket.on("kickPlayer", ({ playerId }) => {
+    const roomId = playerRoomMap.get(socket.id);
+    if (!roomId) {
+      socket.emit("error", "คุณไม่ได้อยู่ในห้อง");
+      return;
+    }
+
+    const room = gameRooms.get(roomId);
+    if (!room || room.hostId !== socket.id) {
+      socket.emit("error", "คุณไม่ใช่ Host");
+      return;
+    }
+
+    // Can't kick yourself
+    if (playerId === socket.id) {
+      socket.emit("error", "ไม่สามารถเตะตัวเองได้");
+      return;
+    }
+
+    // Find the player to kick
+    const playerToKick = room.players.find((p) => p.id === playerId);
+    if (!playerToKick) {
+      socket.emit("error", "ไม่พบผู้เล่นนี้");
+      return;
+    }
+
+    // Can't kick during game (Undercover can kick spectators or after game)
+    if (room.isPlaying && !isUndercoverRoom(room)) {
+      socket.emit("error", "ไม่สามารถเตะผู้เล่นระหว่างเกม");
+      return;
+    }
+
+    // For Undercover: can kick spectators during game, or anyone after game
+    if (isUndercoverRoom(room) && room.isPlaying) {
+      const undercoverPlayer = playerToKick as UndercoverPlayer;
+      if (!undercoverPlayer.isSpectator) {
+        socket.emit("error", "ไม่สามารถเตะผู้เล่นที่กำลังเล่นอยู่");
+        return;
+      }
+    }
+
+    // Remove player from room
+    room.players = room.players.filter(
+      (p) => p.id !== playerId
+    ) as typeof room.players;
+    playerRoomMap.delete(playerId);
+
+    // Notify the kicked player
+    io.to(playerId).emit("kicked", "คุณถูกเตะออกจากห้อง");
+    io.sockets.sockets.get(playerId)?.leave(`room-${roomId}`);
+
+    // Update players list
+    if (isUndercoverRoom(room)) {
+      const alivePlayers = room.players.filter((p) => !p.isSpectator);
+      const spectators = room.players.filter((p) => p.isSpectator);
+      io.to(`room-${roomId}`).emit("undercoverPlayersUpdate", {
+        alivePlayers,
+        spectators,
+      });
+    } else {
+      io.to(`room-${roomId}`).emit("playersUpdate", room.players);
+    }
+
+    // Broadcast updated room list
+    broadcastRoomList(io);
+
+    console.log(`${playerToKick.name} was kicked from room "${room.name}" (${roomId}) by host`);
   });
 
   // Close room (host only)
@@ -622,6 +694,16 @@ function emitRejoinSuccess(
       (p) => p.isAlive && !p.isSpectator
     );
     const spectators = room.players.filter((p) => p.isSpectator);
+    const mrWhiteWhoGuesses = room.players.find(
+      (p) => p.role === "mrwhite" && !p.isAlive
+    );
+    const isYouGuessing =
+      currentGameState === "playing" &&
+      room.waitingForMrWhiteGuess &&
+      mrWhiteWhoGuesses?.id === socket.id;
+    const currentTurnPlayerName = room.currentTurnPlayerId
+      ? room.players.find((p) => p.id === room.currentTurnPlayerId)?.name
+      : undefined;
 
     socket.emit("rejoinSuccess", {
       roomId,
@@ -652,6 +734,17 @@ function emitRejoinSuccess(
         currentGameState === "round-end"
           ? room.roundResult || undefined
           : undefined,
+      waitingForMrWhiteGuess:
+        currentGameState === "playing"
+          ? room.waitingForMrWhiteGuess
+          : undefined,
+      isYouGuessing: currentGameState === "playing" ? isYouGuessing : undefined,
+      currentTurnPlayerId:
+        currentGameState === "playing"
+          ? room.currentTurnPlayerId ?? undefined
+          : undefined,
+      currentTurnPlayerName:
+        currentGameState === "playing" ? currentTurnPlayerName : undefined,
     });
   } else {
     // Who Am I

@@ -88,6 +88,10 @@ export interface RejoinSuccessData {
   civilianWord?: string;
   undercoverWord?: string;
   undercoverRoundResult?: UndercoverWinResult;
+  waitingForMrWhiteGuess?: boolean;
+  isYouGuessing?: boolean;
+  currentTurnPlayerId?: string | null;
+  currentTurnPlayerName?: string;
 }
 
 // Socket.io event types
@@ -100,6 +104,7 @@ export interface ServerToClientEvents {
   gameStarted: (data: GameStartedData) => void;
   roomClosed: () => void;
   leftRoom: () => void;
+  kicked: (reason: string) => void;
   wordRevealed: (word: string) => void;
   error: (message: string) => void;
   // Multi-round events
@@ -128,6 +133,7 @@ export interface ClientToServerEvents {
   createRoom: (data: CreateRoomData) => void;
   joinRoom: (data: JoinRoomData) => void;
   leaveRoom: (data: LeaveRoomData) => void;
+  kickPlayer: (data: { playerId: string }) => void;
   // Game events
   startGame: (data: StartGameData) => void;
   closeRoom: () => void;
@@ -150,5 +156,6 @@ export interface ClientToServerEvents {
   startUndercoverGame: () => void;
   undercoverVote: (data: UndercoverVoteData) => void;
   undercoverMrWhiteGuess: (data: UndercoverMrWhiteGuessData) => void;
+  undercoverSkipMrWhiteGuess: () => void;
   endUndercoverGame: () => void;
 }

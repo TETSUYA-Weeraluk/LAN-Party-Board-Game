@@ -13,6 +13,7 @@ interface UndercoverRoundEndScreenProps {
   isHost: boolean;
   onNextRound: () => void;
   onCloseRoom: () => void;
+  onKickPlayer: (playerId: string) => void;
   isStarting: boolean;
 }
 
@@ -40,9 +41,11 @@ export default function UndercoverRoundEndScreen({
   isHost,
   onNextRound,
   onCloseRoom,
+  onKickPlayer,
   isStarting,
 }: UndercoverRoundEndScreenProps) {
   const [showConfirmClose, setShowConfirmClose] = useState(false);
+  const [kickConfirmId, setKickConfirmId] = useState<string | null>(null);
 
   const resultInfo = RESULT_INFO[result];
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
@@ -158,6 +161,35 @@ export default function UndercoverRoundEndScreen({
                     <p className="text-2xl font-bold text-white">{player.score}</p>
                     <p className="text-xs text-purple-300">คะแนน</p>
                   </div>
+                  {/* Kick button for host */}
+                  {isHost && !isCurrentUser && !player.isHost && (
+                    kickConfirmId === player.id ? (
+                      <div className="flex flex-col gap-1 ml-2">
+                        <button
+                          onClick={() => {
+                            onKickPlayer(player.id);
+                            setKickConfirmId(null);
+                          }}
+                          className="px-2 py-1 bg-red-500 text-white text-xs rounded-lg"
+                        >
+                          ยืนยัน
+                        </button>
+                        <button
+                          onClick={() => setKickConfirmId(null)}
+                          className="px-2 py-1 bg-white/10 text-white text-xs rounded-lg"
+                        >
+                          ยกเลิก
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setKickConfirmId(player.id)}
+                        className="ml-2 px-2 py-1 bg-red-500/20 text-red-300 text-xs rounded-lg hover:bg-red-500/30 transition-colors"
+                      >
+                        เตะ
+                      </button>
+                    )
+                  )}
                 </div>
               );
             })}

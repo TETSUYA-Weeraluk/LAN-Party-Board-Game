@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { UndercoverPlayer, UndercoverRole, UndercoverVoteResultData, UndercoverMrWhiteGuessResultData } from "../types";
+import type {
+  UndercoverPlayer,
+  UndercoverRole,
+  UndercoverVoteResultData,
+  UndercoverMrWhiteGuessResultData,
+} from "../types";
 
 interface UndercoverGameScreenProps {
   currentPlayerId: string;
@@ -13,20 +18,42 @@ interface UndercoverGameScreenProps {
   isHost: boolean;
   isSpectator: boolean;
   currentRound: number;
+  currentTurnPlayerId: string | null;
+  currentTurnPlayerName: string;
   voteResult: UndercoverVoteResultData | null;
   mrWhiteGuessResult: UndercoverMrWhiteGuessResultData | null;
   waitingForMrWhiteGuess: boolean;
+  isYouGuessing: boolean;
   onVote: (playerId: string) => void;
   onMrWhiteGuess: (guess: string) => void;
+  onSkipMrWhiteGuess: () => void;
   onCloseRoom: () => void;
   onEndGame: () => void;
 }
 
 // Role display info
-const ROLE_INFO: Record<UndercoverRole, { name: string; emoji: string; color: string; bgColor: string }> = {
-  civilian: { name: "พลเรือน", emoji: "👤", color: "text-blue-300", bgColor: "bg-blue-500/20" },
-  undercover: { name: "Undercover", emoji: "🕵️", color: "text-red-300", bgColor: "bg-red-500/20" },
-  mrwhite: { name: "Mr.White", emoji: "👻", color: "text-gray-300", bgColor: "bg-gray-500/20" },
+const ROLE_INFO: Record<
+  UndercoverRole,
+  { name: string; emoji: string; color: string; bgColor: string }
+> = {
+  civilian: {
+    name: "พลเรือน",
+    emoji: "👤",
+    color: "text-blue-300",
+    bgColor: "bg-blue-500/20",
+  },
+  undercover: {
+    name: "Undercover",
+    emoji: "🕵️",
+    color: "text-blue-300",
+    bgColor: "bg-blue-500/20",
+  },
+  mrwhite: {
+    name: "Mr.White",
+    emoji: "👻",
+    color: "text-gray-300",
+    bgColor: "bg-gray-500/20",
+  },
 };
 
 export default function UndercoverGameScreen({
@@ -39,24 +66,34 @@ export default function UndercoverGameScreen({
   isHost,
   isSpectator,
   currentRound,
+  currentTurnPlayerId,
+  currentTurnPlayerName,
   voteResult,
   mrWhiteGuessResult,
   waitingForMrWhiteGuess,
+  isYouGuessing,
   onVote,
   onMrWhiteGuess,
+  onSkipMrWhiteGuess,
   onCloseRoom,
   onEndGame,
 }: UndercoverGameScreenProps) {
   const [showConfirmClose, setShowConfirmClose] = useState(false);
   const [showConfirmEnd, setShowConfirmEnd] = useState(false);
-  const [selectedVotePlayer, setSelectedVotePlayer] = useState<string | null>(null);
+  const [selectedVotePlayer, setSelectedVotePlayer] = useState<string | null>(
+    null
+  );
   const [showVoteConfirm, setShowVoteConfirm] = useState(false);
   const [mrWhiteGuessInput, setMrWhiteGuessInput] = useState("");
   const [showVoteResultModal, setShowVoteResultModal] = useState(false);
   const [showGuessResultModal, setShowGuessResultModal] = useState(false);
 
   const roleInfo = ROLE_INFO[myRole];
-  const isMrWhiteAndVoted = waitingForMrWhiteGuess && voteResult?.votedPlayerId === currentPlayerId;
+
+  // ตรวจสอบว่าเป็น Mr.White ที่ต้องทาย (ใช้ isYouGuessing จาก server รองรับ reconnect)
+  const isMrWhiteAndVoted =
+    waitingForMrWhiteGuess &&
+    (isYouGuessing || (myRole === "mrwhite" && voteResult?.votedPlayerRole === "mrwhite"));
 
   // Show vote result modal when vote happens
   useEffect(() => {
@@ -102,6 +139,19 @@ export default function UndercoverGameScreen({
             </span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">🎭 Undercover</h1>
+          
+          {/* แสดงคนที่เริ่มก่อน (ใช้ชื่อจาก state ให้ไม่หายเมื่อ list อัปเดต) */}
+          {(currentTurnPlayerName || currentTurnPlayerId) && (
+            <div className="mt-2 px-4 py-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl border border-yellow-500/30 inline-block">
+              <span className="text-yellow-300 text-sm">
+                🎯 เริ่มที่:{" "}
+                <span className="font-bold text-white">
+                  {currentTurnPlayerName || alivePlayers.find((p) => p.id === currentTurnPlayerId)?.name || "..."}
+                  {currentTurnPlayerId === currentPlayerId && " (คุณ)"}
+                </span>
+              </span>
+            </div>
+          )}
         </div>
 
         {/* My role card */}
@@ -109,22 +159,30 @@ export default function UndercoverGameScreen({
           <div className="mb-6">
             <div
               className={`relative overflow-hidden rounded-3xl p-8 border-2 ${
-                myRole === "civilian"
+                myRole === "civilian" || myRole === "undercover"
                   ? "bg-gradient-to-br from-blue-900/50 to-blue-800/30 border-blue-500/50"
-                  : myRole === "undercover"
-                  ? "bg-gradient-to-br from-red-900/50 to-red-800/30 border-red-500/50"
                   : "bg-gradient-to-br from-gray-900/50 to-gray-800/30 border-gray-500/50"
               }`}
             >
               <div className="absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl bg-white/10" />
 
               <div className="relative z-10 text-center">
-                <div className="text-6xl mb-4">{roleInfo.emoji}</div>
-                <p className="text-white font-semibold text-lg mb-2">{currentPlayerName}</p>
-                <p className={`${roleInfo.color} text-sm mb-4`}>คุณคือ {roleInfo.name}</p>
+                {/* เฉลยว่าเป็นบทบาทอะไร */}
+                {/* <div className="text-6xl mb-4">{roleInfo.emoji}</div> */}
+
+                <p className="text-white font-semibold text-lg mb-2">
+                  {currentPlayerName}
+                </p>
+
+                {/* เฉลยว่าเป็นบทบาทอะไร */}
+                {/* <p className={`${roleInfo.color} text-sm mb-4`}>
+                  คุณคือ {roleInfo.name}
+                </p> */}
 
                 {myWord ? (
-                  <div className={`inline-block px-6 py-4 ${roleInfo.bgColor} rounded-2xl border border-white/20`}>
+                  <div
+                    className={`inline-block px-6 py-4 ${roleInfo.bgColor} rounded-2xl border border-white/20`}
+                  >
                     <p className="text-white/70 text-sm mb-1">คำของคุณ</p>
                     <p className="text-3xl font-bold text-white">{myWord}</p>
                   </div>
@@ -132,7 +190,9 @@ export default function UndercoverGameScreen({
                   <div className="inline-block px-6 py-4 bg-gray-500/20 rounded-2xl border border-gray-500/30">
                     <p className="text-gray-200 text-sm mb-1">คำของคุณ</p>
                     <p className="text-3xl font-bold text-gray-300">?????</p>
-                    <p className="text-gray-400 text-xs mt-2">พยายามเดาจากบทสนทนา!</p>
+                    <p className="text-gray-400 text-xs mt-2">
+                      พยายามเดาจากบทสนทนา!
+                    </p>
                   </div>
                 )}
               </div>
@@ -143,7 +203,9 @@ export default function UndercoverGameScreen({
         {/* Spectator view */}
         {isSpectator && (
           <div className="mb-6 p-4 bg-purple-500/20 rounded-2xl border border-purple-500/30">
-            <p className="text-center text-purple-200">👀 คุณเป็นผู้ดู - เห็น Role และคำของทุกคน</p>
+            <p className="text-center text-purple-200">
+              👀 คุณเป็นผู้ดู - เห็น Role และคำของทุกคน
+            </p>
           </div>
         )}
 
@@ -154,15 +216,18 @@ export default function UndercoverGameScreen({
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {alivePlayers.map((player) => {
-              const playerRoleInfo = player.role ? ROLE_INFO[player.role] : null;
+              const playerRoleInfo = player.role
+                ? ROLE_INFO[player.role]
+                : null;
               const isSelected = selectedVotePlayer === player.id;
               const isCurrentPlayer = player.id === currentPlayerId;
+              const isFirstPlayer = player.id === currentTurnPlayerId;
 
               return (
                 <div
                   key={player.id}
                   onClick={() => {
-                    if (isHost && !isCurrentPlayer && player.isAlive) {
+                    if (isHost && player.isAlive) {
                       setSelectedVotePlayer(player.id);
                       setShowVoteConfirm(true);
                     }
@@ -170,6 +235,8 @@ export default function UndercoverGameScreen({
                   className={`p-3 rounded-xl border text-center transition-all ${
                     isSelected
                       ? "bg-red-500/30 border-red-500/50 ring-2 ring-red-500"
+                      : isFirstPlayer
+                      ? "bg-yellow-500/20 border-yellow-500/50 ring-2 ring-yellow-500/50"
                       : isCurrentPlayer
                       ? "bg-purple-500/20 border-purple-500/50"
                       : isHost && player.isAlive
@@ -177,25 +244,41 @@ export default function UndercoverGameScreen({
                       : "bg-white/5 border-white/10"
                   }`}
                 >
-                  <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+                  {/* Badge สำหรับคนเริ่มก่อน */}
+                  {isFirstPlayer && (
+                    <div className="text-xs text-yellow-400 mb-1 font-semibold">
+                      🎯 เริ่มก่อน
+                    </div>
+                  )}
+                  <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center text-white font-bold text-lg ${
+                    isFirstPlayer 
+                      ? "bg-gradient-to-br from-yellow-500 to-orange-600" 
+                      : "bg-gradient-to-br from-purple-500 to-indigo-600"
+                  }`}>
                     {player.name.charAt(0).toUpperCase()}
                   </div>
                   <p className="text-white font-medium text-sm truncate">
                     {player.name}
-                    {isCurrentPlayer && <span className="text-purple-400"> (คุณ)</span>}
+                    {isCurrentPlayer && (
+                      <span className="text-purple-400"> (คุณ)</span>
+                    )}
                   </p>
                   {player.isHost && (
                     <span className="text-yellow-400 text-xs">👑 Host</span>
                   )}
-                  
+
                   {/* Show role for spectators */}
                   {isSpectator && playerRoleInfo && (
-                    <div className={`mt-1 px-2 py-0.5 rounded-full text-xs ${playerRoleInfo.bgColor} ${playerRoleInfo.color}`}>
+                    <div
+                      className={`mt-1 px-2 py-0.5 rounded-full text-xs ${playerRoleInfo.bgColor} ${playerRoleInfo.color}`}
+                    >
                       {playerRoleInfo.emoji} {playerRoleInfo.name}
                     </div>
                   )}
                   {isSpectator && player.word && (
-                    <p className="text-xs text-purple-300 mt-1">คำ: {player.word}</p>
+                    <p className="text-xs text-purple-300 mt-1">
+                      คำ: {player.word}
+                    </p>
                   )}
                 </div>
               );
@@ -206,7 +289,9 @@ export default function UndercoverGameScreen({
         {/* Spectators list */}
         {spectators.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-purple-300 mb-2">👀 ผู้ดู ({spectators.length})</h3>
+            <h3 className="text-sm font-semibold text-purple-300 mb-2">
+              👀 ผู้ดู ({spectators.length})
+            </h3>
             <div className="flex flex-wrap gap-2">
               {spectators.map((player) => (
                 <span
@@ -225,7 +310,10 @@ export default function UndercoverGameScreen({
           <h3 className="text-white font-semibold mb-2">💡 วิธีเล่น</h3>
           <ul className="text-purple-200/80 text-sm space-y-1">
             <li>• ผลัดกันบอกใบ้คำของตัวเอง (ห้ามพูดคำโดยตรง)</li>
-            <li>• สังเกตคนที่บอกใบ้ &quot;แปลกๆ&quot; อาจเป็น Undercover หรือ Mr.White</li>
+            <li>
+              • สังเกตคนที่บอกใบ้ &quot;แปลกๆ&quot; อาจเป็น Undercover หรือ
+              Mr.White
+            </li>
             <li>• โหวตคนที่คิดว่าไม่ใช่พลเรือนออก</li>
             <li>• Mr.White ไม่รู้คำใดๆ - ต้องเดาจากบทสนทนา!</li>
           </ul>
@@ -244,11 +332,15 @@ export default function UndercoverGameScreen({
         {showVoteConfirm && selectedVotePlayer && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-slate-800 rounded-2xl p-6 max-w-sm w-full border border-white/20">
-              <h3 className="text-xl font-bold text-white text-center mb-4">🗳️ ยืนยันการโหวต</h3>
+              <h3 className="text-xl font-bold text-white text-center mb-4">
+                🗳️ ยืนยันการโหวต
+              </h3>
               <p className="text-purple-200 text-center mb-6">
-                คุณต้องการโหวต <span className="text-white font-bold">
-                  {alivePlayers.find(p => p.id === selectedVotePlayer)?.name}
-                </span> ออกใช่ไหม?
+                คุณต้องการโหวต{" "}
+                <span className="text-white font-bold">
+                  {alivePlayers.find((p) => p.id === selectedVotePlayer)?.name}
+                </span>{" "}
+                ออกใช่ไหม?
               </p>
               <div className="flex gap-3">
                 <button
@@ -276,34 +368,46 @@ export default function UndercoverGameScreen({
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-slate-800 rounded-2xl p-6 max-w-sm w-full border border-white/20">
               <div className="text-center">
-                <div className="text-6xl mb-4">
-                  {ROLE_INFO[voteResult.votedPlayerRole].emoji}
-                </div>
                 <h3 className="text-xl font-bold text-white mb-2">
                   {voteResult.votedPlayerName} ถูกโหวตออก!
                 </h3>
-                <div className={`inline-block px-4 py-2 rounded-full ${ROLE_INFO[voteResult.votedPlayerRole].bgColor} ${ROLE_INFO[voteResult.votedPlayerRole].color} text-lg font-semibold mb-4`}>
-                  {ROLE_INFO[voteResult.votedPlayerRole].name}
-                </div>
-                
-                {voteResult.votedPlayerWord && (
-                  <p className="text-purple-300 mb-4">
-                    คำของเขา: <span className="text-white font-semibold">{voteResult.votedPlayerWord}</span>
-                  </p>
-                )}
-
-                {voteResult.isMrWhiteGuessing ? (
-                  <p className="text-yellow-300 animate-pulse">
-                    Mr.White กำลังทายคำ...
-                  </p>
-                ) : (
-                  <button
-                    onClick={() => setShowVoteResultModal(false)}
-                    className="px-6 py-2 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-colors"
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`inline-block px-4 py-2 rounded-full ${
+                      ROLE_INFO[voteResult.votedPlayerRole].bgColor
+                    } ${
+                      ROLE_INFO[voteResult.votedPlayerRole].color
+                    } text-lg font-semibold mb-4`}
                   >
-                    ปิด
-                  </button>
-                )}
+                    {ROLE_INFO[voteResult.votedPlayerRole].name}
+                  </div>
+
+                  {voteResult.isMrWhiteGuessing ? (
+                    <div className="flex flex-col items-center gap-3">
+                      <p className="text-yellow-300 animate-pulse">
+                        Mr.White กำลังทายคำ...
+                      </p>
+                      {isHost && (
+                        <button
+                          onClick={() => {
+                            onSkipMrWhiteGuess();
+                            setShowVoteResultModal(false);
+                          }}
+                          className="px-4 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors text-sm"
+                        >
+                          ข้าม (Mr.White ตอบไม่ได้)
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowVoteResultModal(false)}
+                      className="px-6 py-2 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-colors"
+                    >
+                      ปิด
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -315,12 +419,14 @@ export default function UndercoverGameScreen({
             <div className="bg-slate-800 rounded-2xl p-6 max-w-sm w-full border border-white/20">
               <div className="text-center mb-4">
                 <div className="text-6xl mb-4">👻</div>
-                <h3 className="text-xl font-bold text-white mb-2">คุณคือ Mr.White!</h3>
+                <h3 className="text-xl font-bold text-white mb-2">
+                  คุณคือ Mr.White!
+                </h3>
                 <p className="text-purple-200 mb-4">
                   คุณถูกโหวตออก แต่ถ้าทายคำของพลเรือนถูก คุณจะชนะ!
                 </p>
               </div>
-              
+
               <div className="space-y-4">
                 <input
                   type="text"
@@ -350,8 +456,15 @@ export default function UndercoverGameScreen({
                 <div className="text-6xl mb-4">
                   {mrWhiteGuessResult.isCorrect ? "🎉" : "❌"}
                 </div>
-                <h3 className={`text-xl font-bold mb-2 ${mrWhiteGuessResult.isCorrect ? "text-green-400" : "text-red-400"}`}>
-                  {mrWhiteGuessResult.playerName} ทาย{mrWhiteGuessResult.isCorrect ? "ถูก" : "ผิด"}!
+                <h3
+                  className={`text-xl font-bold mb-2 ${
+                    mrWhiteGuessResult.isCorrect
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  {mrWhiteGuessResult.playerName} ทาย
+                  {mrWhiteGuessResult.isCorrect ? "ถูก" : "ผิด"}!
                 </h3>
                 <p className="text-purple-200 mb-4">
                   {mrWhiteGuessResult.isCorrect

@@ -58,6 +58,8 @@ export interface UndercoverGameRoom {
   lastVotedPlayerId: string | null;
   waitingForMrWhiteGuess: boolean;
   roundResult: UndercoverWinResult | null;
+  currentTurnPlayerId: string | null;  // ผู้เล่นที่ต้องเริ่มพูดก่อน
+  usedWordPairIndices: number[];       // index ของคำที่ใช้ไปแล้ว
 }
 
 // Union type for all room types
