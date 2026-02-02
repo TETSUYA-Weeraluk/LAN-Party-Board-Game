@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { UndercoverPlayer } from "../types";
+import type { ImposterPlayer } from "../types";
 
 interface UndercoverLobbyScreenProps {
   roomId: string;
   roomName: string;
-  players: UndercoverPlayer[];
+  players: ImposterPlayer[];
   currentPlayerId: string;
   isHost: boolean;
   onStartGame: () => void;
@@ -17,16 +17,16 @@ interface UndercoverLobbyScreenProps {
   isStarting: boolean;
 }
 
-// Role distribution table
-const ROLE_DISTRIBUTION: Record<number, { civilians: number; undercover: number; mrwhite: number }> = {
-  3: { civilians: 2, undercover: 1, mrwhite: 0 },
-  4: { civilians: 2, undercover: 1, mrwhite: 1 },
-  5: { civilians: 3, undercover: 1, mrwhite: 1 },
-  6: { civilians: 4, undercover: 1, mrwhite: 1 },
-  7: { civilians: 5, undercover: 1, mrwhite: 1 },
-  8: { civilians: 5, undercover: 2, mrwhite: 1 },
-  9: { civilians: 6, undercover: 2, mrwhite: 1 },
-  10: { civilians: 7, undercover: 2, mrwhite: 1 },
+// Role distribution (Citizen, The Imposter, The Blank)
+const ROLE_DISTRIBUTION: Record<number, { citizens: number; imposters: number; blanks: number }> = {
+  3: { citizens: 2, imposters: 1, blanks: 0 },
+  4: { citizens: 2, imposters: 1, blanks: 1 },
+  5: { citizens: 3, imposters: 1, blanks: 1 },
+  6: { citizens: 4, imposters: 1, blanks: 1 },
+  7: { citizens: 5, imposters: 1, blanks: 1 },
+  8: { citizens: 5, imposters: 2, blanks: 1 },
+  9: { citizens: 6, imposters: 2, blanks: 1 },
+  10: { citizens: 7, imposters: 2, blanks: 1 },
 };
 
 export default function UndercoverLobbyScreen({
@@ -58,7 +58,7 @@ export default function UndercoverLobbyScreen({
     if (typeof window !== "undefined") {
       const baseUrl = window.location.origin;
       setTimeout(() => {
-        setShareUrl(`${baseUrl}/undercover/${roomId}`);
+        setShareUrl(`${baseUrl}/imposter/${roomId}`);
       }, 0);
     }
   }, [roomId]);
@@ -68,7 +68,7 @@ export default function UndercoverLobbyScreen({
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 pt-8">
-          <h1 className="text-4xl font-bold text-white mb-2">🎭 Undercover</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">🎭 The Imposter</h1>
           <p className="text-purple-200">ห้อง: <span className="text-white font-semibold">{roomName}</span></p>
           <p className="text-purple-300 text-sm mt-1">รหัสห้อง: <code className="bg-white/10 px-2 py-0.5 rounded">{roomId}</code></p>
         </div>
@@ -241,16 +241,16 @@ export default function UndercoverLobbyScreen({
               {distribution ? (
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="p-2 bg-blue-500/20 rounded-lg">
-                    <p className="text-blue-300 text-xs">พลเรือน</p>
-                    <p className="text-white font-bold text-lg">{distribution.civilians}</p>
+                    <p className="text-blue-300 text-xs">Citizen</p>
+                    <p className="text-white font-bold text-lg">{distribution.citizens}</p>
                   </div>
                   <div className="p-2 bg-red-500/20 rounded-lg">
-                    <p className="text-red-300 text-xs">Undercover</p>
-                    <p className="text-white font-bold text-lg">{distribution.undercover}</p>
+                    <p className="text-red-300 text-xs">The Imposter</p>
+                    <p className="text-white font-bold text-lg">{distribution.imposters}</p>
                   </div>
                   <div className="p-2 bg-gray-500/20 rounded-lg">
-                    <p className="text-gray-300 text-xs">Mr.White</p>
-                    <p className="text-white font-bold text-lg">{distribution.mrwhite}</p>
+                    <p className="text-gray-300 text-xs">The Blank</p>
+                    <p className="text-white font-bold text-lg">{distribution.blanks}</p>
                   </div>
                 </div>
               ) : (
@@ -262,9 +262,9 @@ export default function UndercoverLobbyScreen({
             <div className="mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
               <h3 className="text-white font-semibold mb-2">📖 วิธีเล่น</h3>
               <ul className="text-purple-200/80 text-sm space-y-1">
-                <li>• <span className="text-blue-300">พลเรือน</span>: ได้คำเหมือนกัน หา Undercover/Mr.White</li>
-                <li>• <span className="text-red-300">Undercover</span>: ได้คำคล้ายๆ พยายามไม่โดนจับ</li>
-                <li>• <span className="text-gray-300">Mr.White</span>: ไม่รู้คำ ถ้าโดนจับให้ทายคำ</li>
+                <li>• <span className="text-blue-300">Citizen</span>: ได้คำเหมือนกัน หา The Imposter/The Blank</li>
+                <li>• <span className="text-red-300">The Imposter</span>: ได้คำคล้ายๆ พยายามไม่โดนจับ</li>
+                <li>• <span className="text-gray-300">The Blank</span>: ไม่รู้คำ ถ้าโดนจับให้ทายคำ</li>
               </ul>
             </div>
 

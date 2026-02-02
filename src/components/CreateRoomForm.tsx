@@ -24,7 +24,7 @@ export default function CreateRoomForm({ onSubmit, onBack, accentColor = "pink" 
       textAccent: "text-purple-200",
       textAccent2: "text-purple-300",
       placeholder: "placeholder-purple-300",
-      gameTitle: "🎭 Who Am I?",
+      gameTitle: "🎭 Guess Me",
     },
     cyan: {
       bgGradient: "from-slate-900 via-cyan-900 to-blue-900",
@@ -34,7 +34,7 @@ export default function CreateRoomForm({ onSubmit, onBack, accentColor = "pink" 
       textAccent: "text-cyan-200",
       textAccent2: "text-cyan-300",
       placeholder: "placeholder-cyan-300",
-      gameTitle: "🕵️ Spy Fall",
+      gameTitle: "🕵️ Where Are We",
     },
     purple: {
       bgGradient: "from-slate-900 via-purple-900 to-indigo-900",
@@ -44,7 +44,7 @@ export default function CreateRoomForm({ onSubmit, onBack, accentColor = "pink" 
       textAccent: "text-purple-200",
       textAccent2: "text-purple-300",
       placeholder: "placeholder-purple-300",
-      gameTitle: "🎭 Undercover",
+      gameTitle: "🎭 The Imposter",
     },
   };
 

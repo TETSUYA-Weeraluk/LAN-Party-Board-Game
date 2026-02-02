@@ -19,15 +19,15 @@ export type {
   RejoinData,
 } from "./shared";
 
-// Who Am I types
+// Guess Me types (เดิม Who Am I)
 export type {
   GameStartedData,
   PlayerAnsweredData,
   PlayerEliminatedData,
   RoundEndedData,
-} from "@/game/who-am-i/types";
+} from "@/game/guess-me/types";
 
-// Spy Fall types
+// Where Are We types (เดิม Spy Fall)
 export type {
   SpyFallPlayer,
   SpyFallGameStartedData,
@@ -35,26 +35,26 @@ export type {
   AddLocationData,
   RemoveLocationData,
   LocationsUpdateData,
-} from "@/game/spy-fall/types";
+} from "@/game/where-are-we/types";
 
-// Undercover types
+// The Imposter types (เดิม Undercover)
 export type {
-  UndercoverRole,
-  UndercoverPlayer,
-  UndercoverGameStartedData,
-  UndercoverVoteResultData,
-  UndercoverMrWhiteGuessResultData,
-  UndercoverWinResult,
-  UndercoverRoundEndedData,
-  UndercoverVoteData,
-  UndercoverMrWhiteGuessData,
-} from "@/game/undercover/types";
+  ImposterRole,
+  ImposterPlayer,
+  ImposterGameStartedData,
+  ImposterVoteResultData,
+  ImposterBlankGuessResultData,
+  ImposterWinResult,
+  ImposterRoundEndedData,
+  ImposterVoteData,
+  ImposterBlankGuessData,
+} from "@/game/imposter/types";
 
 // Import types for use in interfaces below
 import type { Player, RoomInfo, RoomListData, RoomJoined, StartGameData, GetRoomInfoData, CreateRoomData, JoinRoomData, LeaveRoomData, RejoinData, GameType, PlayerWithWord } from "./shared";
-import type { GameStartedData, PlayerAnsweredData, PlayerEliminatedData, RoundEndedData } from "@/game/who-am-i/types";
-import type { SpyFallPlayer, SpyFallGameStartedData, SpyFallRoundEndedData, AddLocationData, RemoveLocationData, LocationsUpdateData } from "@/game/spy-fall/types";
-import type { UndercoverRole, UndercoverPlayer, UndercoverGameStartedData, UndercoverVoteResultData, UndercoverMrWhiteGuessResultData, UndercoverWinResult, UndercoverRoundEndedData, UndercoverVoteData, UndercoverMrWhiteGuessData } from "@/game/undercover/types";
+import type { GameStartedData, PlayerAnsweredData, PlayerEliminatedData, RoundEndedData } from "@/game/guess-me/types";
+import type { SpyFallPlayer, SpyFallGameStartedData, SpyFallRoundEndedData, AddLocationData, RemoveLocationData, LocationsUpdateData } from "@/game/where-are-we/types";
+import type { ImposterRole, ImposterPlayer, ImposterGameStartedData, ImposterVoteResultData, ImposterBlankGuessResultData, ImposterWinResult, ImposterRoundEndedData, ImposterVoteData, ImposterBlankGuessData } from "@/game/imposter/types";
 
 // Rejoin success data
 export interface RejoinSuccessData {
@@ -65,14 +65,14 @@ export interface RejoinSuccessData {
   gameState: "lobby" | "playing" | "round-end";
   players: Player[];
   gameType: GameType;
-  // Who Am I game data (if playing)
+  // Guess Me game data (if playing)
   category?: string;
   otherPlayers?: PlayerWithWord[];
   timerDuration?: number;
   timerStartedAt?: number;
   currentRound?: number;
   playedCategories?: string[];
-  // Spy Fall specific
+  // Where Are We specific
   customLocations?: string[];
   excludedLocations?: string[];
   myLocation?: string | null;
@@ -80,15 +80,15 @@ export interface RejoinSuccessData {
   spyId?: string;
   actualLocation?: string;
   roundResult?: "spy-wins" | "spy-caught";
-  // Undercover specific
-  myRole?: UndercoverRole;
+  // The Imposter specific
+  myRole?: ImposterRole;
   myWord?: string | null;
-  alivePlayers?: UndercoverPlayer[];
-  spectators?: UndercoverPlayer[];
-  civilianWord?: string;
-  undercoverWord?: string;
-  undercoverRoundResult?: UndercoverWinResult;
-  waitingForMrWhiteGuess?: boolean;
+  alivePlayers?: ImposterPlayer[];
+  spectators?: ImposterPlayer[];
+  citizenWord?: string;
+  imposterWord?: string;
+  imposterRoundResult?: ImposterWinResult;
+  waitingForBlankGuess?: boolean;
   isYouGuessing?: boolean;
   currentTurnPlayerId?: string | null;
   currentTurnPlayerName?: string;
@@ -100,7 +100,7 @@ export interface ServerToClientEvents {
   roomList: (data: RoomListData) => void;
   roomJoined: (data: RoomJoined) => void;
   roomInfo: (data: RoomInfo | null) => void;
-  playersUpdate: (players: Player[] | SpyFallPlayer[] | UndercoverPlayer[]) => void;
+  playersUpdate: (players: Player[] | SpyFallPlayer[] | ImposterPlayer[]) => void;
   gameStarted: (data: GameStartedData) => void;
   roomClosed: () => void;
   leftRoom: () => void;
@@ -114,16 +114,16 @@ export interface ServerToClientEvents {
   // Reconnection events
   rejoinSuccess: (data: RejoinSuccessData) => void;
   rejoinFailed: (reason: string) => void;
-  // Spy Fall events
+  // Where Are We events
   locationsUpdate: (data: LocationsUpdateData) => void;
   spyFallGameStarted: (data: SpyFallGameStartedData) => void;
   spyFallRoundEnded: (data: SpyFallRoundEndedData) => void;
-  // Undercover events
-  undercoverGameStarted: (data: UndercoverGameStartedData) => void;
-  undercoverVoteResult: (data: UndercoverVoteResultData) => void;
-  undercoverMrWhiteGuessResult: (data: UndercoverMrWhiteGuessResultData) => void;
-  undercoverRoundEnded: (data: UndercoverRoundEndedData) => void;
-  undercoverPlayersUpdate: (data: { alivePlayers: UndercoverPlayer[]; spectators: UndercoverPlayer[] }) => void;
+  // The Imposter events
+  imposterGameStarted: (data: ImposterGameStartedData) => void;
+  imposterVoteResult: (data: ImposterVoteResultData) => void;
+  imposterBlankGuessResult: (data: ImposterBlankGuessResultData) => void;
+  imposterRoundEnded: (data: ImposterRoundEndedData) => void;
+  imposterPlayersUpdate: (data: { alivePlayers: ImposterPlayer[]; spectators: ImposterPlayer[] }) => void;
 }
 
 export interface ClientToServerEvents {
@@ -144,18 +144,18 @@ export interface ClientToServerEvents {
   nextRound: (data: StartGameData) => void;
   // Reconnection events
   rejoin: (data: RejoinData) => void;
-  // Spy Fall events
+  // Where Are We events
   addLocation: (data: AddLocationData) => void;
   removeLocation: (data: RemoveLocationData) => void;
   startSpyFallGame: () => void;
   spyCaught: () => void;
   spyWins: () => void;
   spyWrongGuess: () => void;
-  // Undercover events
+  // The Imposter events
   toggleSpectator: (isSpectator: boolean) => void;
-  startUndercoverGame: () => void;
-  undercoverVote: (data: UndercoverVoteData) => void;
-  undercoverMrWhiteGuess: (data: UndercoverMrWhiteGuessData) => void;
-  undercoverSkipMrWhiteGuess: () => void;
-  endUndercoverGame: () => void;
+  startImposterGame: () => void;
+  imposterVote: (data: ImposterVoteData) => void;
+  imposterBlankGuess: (data: ImposterBlankGuessData) => void;
+  imposterSkipBlankGuess: () => void;
+  endImposterGame: () => void;
 }

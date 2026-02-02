@@ -10,7 +10,7 @@ import type {
 let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
 
 // Session ID key in localStorage
-const SESSION_ID_KEY = "board-game-who-am-i-session-id";
+const SESSION_ID_KEY = "board-game-session-id";
 
 // Generate unique session ID
 function generateSessionId(): string {

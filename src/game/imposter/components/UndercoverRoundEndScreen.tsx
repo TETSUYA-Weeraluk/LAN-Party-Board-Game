@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { UndercoverPlayer, UndercoverWinResult } from "../types";
+import type { ImposterPlayer, ImposterWinResult } from "../types";
 
 interface UndercoverRoundEndScreenProps {
-  players: UndercoverPlayer[];
+  players: ImposterPlayer[];
   currentPlayerId: string;
-  result: UndercoverWinResult;
-  civilianWord: string;
-  undercoverWord: string;
+  result: ImposterWinResult;
+  citizenWord: string;
+  imposterWord: string;
   currentRound: number;
   isHost: boolean;
   onNextRound: () => void;
@@ -17,26 +17,25 @@ interface UndercoverRoundEndScreenProps {
   isStarting: boolean;
 }
 
-// Result display info
-const RESULT_INFO: Record<UndercoverWinResult, { title: string; emoji: string; color: string; bgColor: string }> = {
-  "civilian-win": { title: "พลเรือนชนะ!", emoji: "👤", color: "text-blue-300", bgColor: "from-blue-900/50 to-blue-800/30" },
-  "undercover-win": { title: "Undercover ชนะ!", emoji: "🕵️", color: "text-red-300", bgColor: "from-red-900/50 to-red-800/30" },
-  "mrwhite-win": { title: "Mr.White ชนะ!", emoji: "👻", color: "text-gray-300", bgColor: "from-gray-900/50 to-gray-800/30" },
+// Result display info (Citizen, The Imposter, The Blank)
+const RESULT_INFO: Record<ImposterWinResult, { title: string; emoji: string; color: string; bgColor: string }> = {
+  "citizen-win": { title: "Citizen ชนะ!", emoji: "👤", color: "text-blue-300", bgColor: "from-blue-900/50 to-blue-800/30" },
+  "imposter-win": { title: "The Imposter ชนะ!", emoji: "🕵️", color: "text-red-300", bgColor: "from-red-900/50 to-red-800/30" },
+  "blank-win": { title: "The Blank ชนะ!", emoji: "👻", color: "text-gray-300", bgColor: "from-gray-900/50 to-gray-800/30" },
 };
 
-// Role display info
 const ROLE_INFO: Record<string, { name: string; emoji: string; color: string }> = {
-  civilian: { name: "พลเรือน", emoji: "👤", color: "text-blue-300" },
-  undercover: { name: "Undercover", emoji: "🕵️", color: "text-red-300" },
-  mrwhite: { name: "Mr.White", emoji: "👻", color: "text-gray-300" },
+  citizen: { name: "Citizen", emoji: "👤", color: "text-blue-300" },
+  imposter: { name: "The Imposter", emoji: "🕵️", color: "text-red-300" },
+  blank: { name: "The Blank", emoji: "👻", color: "text-gray-300" },
 };
 
 export default function UndercoverRoundEndScreen({
   players,
   currentPlayerId,
   result,
-  civilianWord,
-  undercoverWord,
+  citizenWord,
+  imposterWord,
   currentRound,
   isHost,
   onNextRound,
@@ -55,7 +54,7 @@ export default function UndercoverRoundEndScreen({
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8 pt-8">
-          <h1 className="text-4xl font-bold text-white mb-2">🎭 Undercover</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">🎭 The Imposter</h1>
           <p className="text-purple-200">รอบที่ {currentRound} จบแล้ว!</p>
         </div>
 
@@ -74,12 +73,12 @@ export default function UndercoverRoundEndScreen({
             {/* Words reveal */}
             <div className="flex justify-center gap-4 mb-4 flex-wrap">
               <div className="px-4 py-2 bg-blue-500/20 rounded-xl">
-                <p className="text-blue-300 text-xs mb-1">คำพลเรือน</p>
-                <p className="text-white font-bold text-lg">{civilianWord}</p>
+                <p className="text-blue-300 text-xs mb-1">คำ Citizen</p>
+                <p className="text-white font-bold text-lg">{citizenWord}</p>
               </div>
               <div className="px-4 py-2 bg-red-500/20 rounded-xl">
-                <p className="text-red-300 text-xs mb-1">คำ Undercover</p>
-                <p className="text-white font-bold text-lg">{undercoverWord}</p>
+                <p className="text-red-300 text-xs mb-1">คำ The Imposter</p>
+                <p className="text-white font-bold text-lg">{imposterWord}</p>
               </div>
             </div>
           </div>

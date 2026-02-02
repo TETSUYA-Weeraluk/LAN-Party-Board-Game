@@ -10,9 +10,9 @@ import type {
 // Import handlers from server modules
 import {
   registerCommonHandlers,
-  registerWhoAmIHandlers,
+  registerGuessMeHandlers,
   registerSpyFallHandlers,
-  registerUndercoverHandlers,
+  registerImposterHandlers,
 } from "./src/server";
 
 const dev = process.env.NODE_ENV !== "production";
@@ -42,10 +42,10 @@ app.prepare().then(() => {
     console.log(`Player connected: ${socket.id}`);
 
     // Register all handlers
-    registerCommonHandlers(io, socket);    // Room management, connection, rejoin
-    registerWhoAmIHandlers(io, socket);    // Who Am I game events
-    registerSpyFallHandlers(io, socket);   // Spy Fall game events
-    registerUndercoverHandlers(io, socket); // Undercover game events
+    registerCommonHandlers(io, socket);     // Room management, connection, rejoin
+    registerGuessMeHandlers(io, socket);   // Guess Me game events
+    registerSpyFallHandlers(io, socket);   // Where Are We game events
+    registerImposterHandlers(io, socket);  // The Imposter game events
   });
 
   httpServer.listen(port, hostname, () => {

@@ -35,7 +35,7 @@ export default function LobbyScreen({
     // Get window location for sharing with room ID
     if (typeof window !== "undefined") {
       const baseUrl = window.location.origin;
-      setShareUrl(`${baseUrl}/who-am-i/${roomId}`);
+      setShareUrl(`${baseUrl}/guess-me/${roomId}`);
     }
   }, [roomId]);
 

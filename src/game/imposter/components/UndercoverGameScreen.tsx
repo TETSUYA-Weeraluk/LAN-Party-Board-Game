@@ -2,54 +2,54 @@
 
 import { useState, useEffect } from "react";
 import type {
-  UndercoverPlayer,
-  UndercoverRole,
-  UndercoverVoteResultData,
-  UndercoverMrWhiteGuessResultData,
+  ImposterPlayer,
+  ImposterRole,
+  ImposterVoteResultData,
+  ImposterBlankGuessResultData,
 } from "../types";
 
 interface UndercoverGameScreenProps {
   currentPlayerId: string;
   currentPlayerName: string;
-  myRole: UndercoverRole;
+  myRole: ImposterRole;
   myWord: string | null;
-  alivePlayers: UndercoverPlayer[];
-  spectators: UndercoverPlayer[];
+  alivePlayers: ImposterPlayer[];
+  spectators: ImposterPlayer[];
   isHost: boolean;
   isSpectator: boolean;
   currentRound: number;
   currentTurnPlayerId: string | null;
   currentTurnPlayerName: string;
-  voteResult: UndercoverVoteResultData | null;
-  mrWhiteGuessResult: UndercoverMrWhiteGuessResultData | null;
-  waitingForMrWhiteGuess: boolean;
+  voteResult: ImposterVoteResultData | null;
+  blankGuessResult: ImposterBlankGuessResultData | null;
+  waitingForBlankGuess: boolean;
   isYouGuessing: boolean;
   onVote: (playerId: string) => void;
-  onMrWhiteGuess: (guess: string) => void;
-  onSkipMrWhiteGuess: () => void;
+  onBlankGuess: (guess: string) => void;
+  onSkipBlankGuess: () => void;
   onCloseRoom: () => void;
   onEndGame: () => void;
 }
 
-// Role display info
+// Role display info (Citizen, The Imposter, The Blank)
 const ROLE_INFO: Record<
-  UndercoverRole,
+  ImposterRole,
   { name: string; emoji: string; color: string; bgColor: string }
 > = {
-  civilian: {
-    name: "พลเรือน",
+  citizen: {
+    name: "Citizen",
     emoji: "👤",
     color: "text-blue-300",
     bgColor: "bg-blue-500/20",
   },
-  undercover: {
-    name: "Undercover",
+  imposter: {
+    name: "The Imposter",
     emoji: "🕵️",
     color: "text-blue-300",
     bgColor: "bg-blue-500/20",
   },
-  mrwhite: {
-    name: "Mr.White",
+  blank: {
+    name: "The Blank",
     emoji: "👻",
     color: "text-gray-300",
     bgColor: "bg-gray-500/20",
@@ -69,12 +69,12 @@ export default function UndercoverGameScreen({
   currentTurnPlayerId,
   currentTurnPlayerName,
   voteResult,
-  mrWhiteGuessResult,
-  waitingForMrWhiteGuess,
+  blankGuessResult,
+  waitingForBlankGuess,
   isYouGuessing,
   onVote,
-  onMrWhiteGuess,
-  onSkipMrWhiteGuess,
+  onBlankGuess,
+  onSkipBlankGuess,
   onCloseRoom,
   onEndGame,
 }: UndercoverGameScreenProps) {
@@ -84,18 +84,16 @@ export default function UndercoverGameScreen({
     null
   );
   const [showVoteConfirm, setShowVoteConfirm] = useState(false);
-  const [mrWhiteGuessInput, setMrWhiteGuessInput] = useState("");
+  const [blankGuessInput, setBlankGuessInput] = useState("");
   const [showVoteResultModal, setShowVoteResultModal] = useState(false);
   const [showGuessResultModal, setShowGuessResultModal] = useState(false);
 
   const roleInfo = ROLE_INFO[myRole];
 
-  // ตรวจสอบว่าเป็น Mr.White ที่ต้องทาย (ใช้ isYouGuessing จาก server รองรับ reconnect)
-  const isMrWhiteAndVoted =
-    waitingForMrWhiteGuess &&
-    (isYouGuessing || (myRole === "mrwhite" && voteResult?.votedPlayerRole === "mrwhite"));
+  const isBlankAndVoted =
+    waitingForBlankGuess &&
+    (isYouGuessing || (myRole === "blank" && voteResult?.votedPlayerRole === "blank"));
 
-  // Show vote result modal when vote happens
   useEffect(() => {
     if (voteResult) {
       setShowVoteResultModal(true);
@@ -104,12 +102,11 @@ export default function UndercoverGameScreen({
     }
   }, [voteResult]);
 
-  // Show guess result modal
   useEffect(() => {
-    if (mrWhiteGuessResult) {
+    if (blankGuessResult) {
       setShowGuessResultModal(true);
     }
-  }, [mrWhiteGuessResult]);
+  }, [blankGuessResult]);
 
   const handleVoteConfirm = () => {
     if (selectedVotePlayer) {
@@ -118,10 +115,10 @@ export default function UndercoverGameScreen({
     }
   };
 
-  const handleMrWhiteGuessSubmit = () => {
-    if (mrWhiteGuessInput.trim()) {
-      onMrWhiteGuess(mrWhiteGuessInput.trim());
-      setMrWhiteGuessInput("");
+  const handleBlankGuessSubmit = () => {
+    if (blankGuessInput.trim()) {
+      onBlankGuess(blankGuessInput.trim());
+      setBlankGuessInput("");
     }
   };
 
@@ -138,7 +135,7 @@ export default function UndercoverGameScreen({
               👥 เหลือ {alivePlayers.length} คน
             </span>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">🎭 Undercover</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">🎭 The Imposter</h1>
           
           {/* แสดงคนที่เริ่มก่อน (ใช้ชื่อจาก state ให้ไม่หายเมื่อ list อัปเดต) */}
           {(currentTurnPlayerName || currentTurnPlayerId) && (
@@ -159,7 +156,7 @@ export default function UndercoverGameScreen({
           <div className="mb-6">
             <div
               className={`relative overflow-hidden rounded-3xl p-8 border-2 ${
-                myRole === "civilian" || myRole === "undercover"
+                myRole === "citizen" || myRole === "imposter"
                   ? "bg-gradient-to-br from-blue-900/50 to-blue-800/30 border-blue-500/50"
                   : "bg-gradient-to-br from-gray-900/50 to-gray-800/30 border-gray-500/50"
               }`}
@@ -311,11 +308,11 @@ export default function UndercoverGameScreen({
           <ul className="text-purple-200/80 text-sm space-y-1">
             <li>• ผลัดกันบอกใบ้คำของตัวเอง (ห้ามพูดคำโดยตรง)</li>
             <li>
-              • สังเกตคนที่บอกใบ้ &quot;แปลกๆ&quot; อาจเป็น Undercover หรือ
-              Mr.White
+              • สังเกตคนที่บอกใบ้ &quot;แปลกๆ&quot; อาจเป็น The Imposter หรือ
+              The Blank
             </li>
-            <li>• โหวตคนที่คิดว่าไม่ใช่พลเรือนออก</li>
-            <li>• Mr.White ไม่รู้คำใดๆ - ต้องเดาจากบทสนทนา!</li>
+            <li>• โหวตคนที่คิดว่าไม่ใช่ Citizen ออก</li>
+            <li>• The Blank ไม่รู้คำใดๆ - ต้องเดาจากบทสนทนา!</li>
           </ul>
         </div>
 
@@ -382,20 +379,20 @@ export default function UndercoverGameScreen({
                     {ROLE_INFO[voteResult.votedPlayerRole].name}
                   </div>
 
-                  {voteResult.isMrWhiteGuessing ? (
+                  {voteResult.isBlankGuessing ? (
                     <div className="flex flex-col items-center gap-3">
                       <p className="text-yellow-300 animate-pulse">
-                        Mr.White กำลังทายคำ...
+                        The Blank กำลังทายคำ...
                       </p>
                       {isHost && (
                         <button
                           onClick={() => {
-                            onSkipMrWhiteGuess();
+                            onSkipBlankGuess();
                             setShowVoteResultModal(false);
                           }}
                           className="px-4 py-2 bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors text-sm"
                         >
-                          ข้าม (Mr.White ตอบไม่ได้)
+                          ข้าม (The Blank ตอบไม่ได้)
                         </button>
                       )}
                     </div>
@@ -413,32 +410,32 @@ export default function UndercoverGameScreen({
           </div>
         )}
 
-        {/* Mr.White guess modal */}
-        {isMrWhiteAndVoted && (
+        {/* The Blank guess modal */}
+        {isBlankAndVoted && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-slate-800 rounded-2xl p-6 max-w-sm w-full border border-white/20">
               <div className="text-center mb-4">
                 <div className="text-6xl mb-4">👻</div>
                 <h3 className="text-xl font-bold text-white mb-2">
-                  คุณคือ Mr.White!
+                  คุณคือ The Blank!
                 </h3>
                 <p className="text-purple-200 mb-4">
-                  คุณถูกโหวตออก แต่ถ้าทายคำของพลเรือนถูก คุณจะชนะ!
+                  คุณถูกโหวตออก แต่ถ้าทายคำของ Citizen ถูก คุณจะชนะ!
                 </p>
               </div>
 
               <div className="space-y-4">
                 <input
                   type="text"
-                  value={mrWhiteGuessInput}
-                  onChange={(e) => setMrWhiteGuessInput(e.target.value)}
+                  value={blankGuessInput}
+                  onChange={(e) => setBlankGuessInput(e.target.value)}
                   placeholder="พิมพ์คำที่คุณคิดว่าถูก..."
                   className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   autoFocus
                 />
                 <button
-                  onClick={handleMrWhiteGuessSubmit}
-                  disabled={!mrWhiteGuessInput.trim()}
+                  onClick={handleBlankGuessSubmit}
+                  disabled={!blankGuessInput.trim()}
                   className="w-full py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold rounded-xl hover:from-purple-600 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   🎯 ส่งคำตอบ
@@ -448,28 +445,28 @@ export default function UndercoverGameScreen({
           </div>
         )}
 
-        {/* Mr.White guess result modal */}
-        {showGuessResultModal && mrWhiteGuessResult && (
+        {/* The Blank guess result modal */}
+        {showGuessResultModal && blankGuessResult && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-slate-800 rounded-2xl p-6 max-w-sm w-full border border-white/20">
               <div className="text-center">
                 <div className="text-6xl mb-4">
-                  {mrWhiteGuessResult.isCorrect ? "🎉" : "❌"}
+                  {blankGuessResult.isCorrect ? "🎉" : "❌"}
                 </div>
                 <h3
                   className={`text-xl font-bold mb-2 ${
-                    mrWhiteGuessResult.isCorrect
+                    blankGuessResult.isCorrect
                       ? "text-green-400"
                       : "text-red-400"
                   }`}
                 >
-                  {mrWhiteGuessResult.playerName} ทาย
-                  {mrWhiteGuessResult.isCorrect ? "ถูก" : "ผิด"}!
+                  {blankGuessResult.playerName} ทาย
+                  {blankGuessResult.isCorrect ? "ถูก" : "ผิด"}!
                 </h3>
                 <p className="text-purple-200 mb-4">
-                  {mrWhiteGuessResult.isCorrect
-                    ? "Mr.White ชนะ!"
-                    : "Mr.White ไม่สามารถทายคำได้ถูกต้อง"}
+                  {blankGuessResult.isCorrect
+                    ? "The Blank ชนะ!"
+                    : "The Blank ไม่สามารถทายคำได้ถูกต้อง"}
                 </p>
                 <button
                   onClick={() => setShowGuessResultModal(false)}

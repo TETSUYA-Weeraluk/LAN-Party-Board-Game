@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSocket, getSessionId, clearSessionId } from "@/lib/socket";
 import type { RoomInfo } from "@/types/shared";
-import type { Player, PlayerWithWord } from "@/game/who-am-i";
-import { LobbyScreen, GameScreen, RoundEndScreen, RulesButton } from "@/game/who-am-i";
+import type { Player, PlayerWithWord } from "@/game/guess-me";
+import { LobbyScreen, GameScreen, RoundEndScreen, RulesButton } from "@/game/guess-me";
 import JoinRoomForm from "@/components/JoinRoomForm";
 
 type GameState = "loading" | "joining" | "lobby" | "playing" | "round-end";
@@ -93,7 +93,7 @@ export default function WhoAmIRoomPage() {
         }
       } else {
         // User is in a different room, redirect
-        router.push(`/who-am-i/${data.roomId}`);
+        router.push(`/guess-me/${data.roomId}`);
       }
     });
 
@@ -111,7 +111,7 @@ export default function WhoAmIRoomPage() {
       } else {
         // Room doesn't exist
         setError("ไม่พบห้องนี้");
-        setTimeout(() => router.push("/who-am-i"), 2000);
+        setTimeout(() => router.push("/guess-me"), 2000);
       }
     });
 
@@ -241,7 +241,7 @@ export default function WhoAmIRoomPage() {
     // Room closed
     socket.on("roomClosed", () => {
       clearSessionId();
-      router.push("/who-am-i");
+      router.push("/guess-me");
     });
 
     // Word revealed
@@ -251,7 +251,7 @@ export default function WhoAmIRoomPage() {
 
     // Left room
     socket.on("leftRoom", () => {
-      router.push("/who-am-i");
+      router.push("/guess-me");
     });
 
     // Error handling
@@ -367,7 +367,7 @@ export default function WhoAmIRoomPage() {
         <JoinRoomForm
           room={roomInfo}
           onSubmit={handleJoinRoom}
-          onBack={() => router.push("/who-am-i")}
+          onBack={() => router.push("/guess-me")}
         />
       </>
     );

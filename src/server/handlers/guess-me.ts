@@ -1,4 +1,4 @@
-// Who Am I game handlers
+// Guess Me game handlers (เดิม Who Am I)
 
 import type { Server as SocketIOServer, Socket } from "socket.io";
 import type {
@@ -11,7 +11,7 @@ import {
   gameRooms,
   playerRoomMap,
   broadcastRoomList,
-  isWhoAmIRoom,
+  isGuessMeRoom,
 } from "../rooms";
 import {
   calculateScore,
@@ -22,8 +22,8 @@ import {
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 type GameIO = SocketIOServer<ClientToServerEvents, ServerToClientEvents>;
 
-export function registerWhoAmIHandlers(io: GameIO, socket: GameSocket) {
-  // Start game (host only) - Who Am I
+export function registerGuessMeHandlers(io: GameIO, socket: GameSocket) {
+  // Start game (host only) - Guess Me
   socket.on("startGame", async ({ category, timerMinutes }) => {
     const roomId = playerRoomMap.get(socket.id);
     if (!roomId) {
@@ -37,8 +37,8 @@ export function registerWhoAmIHandlers(io: GameIO, socket: GameSocket) {
       return;
     }
 
-    if (!isWhoAmIRoom(room)) {
-      socket.emit("error", "ห้องนี้ไม่ใช่ Who Am I");
+    if (!isGuessMeRoom(room)) {
+      socket.emit("error", "ห้องนี้ไม่ใช่ Guess Me");
       return;
     }
 
@@ -131,8 +131,8 @@ export function registerWhoAmIHandlers(io: GameIO, socket: GameSocket) {
       return;
     }
 
-    if (!isWhoAmIRoom(room)) {
-      socket.emit("error", "ห้องนี้ไม่ใช่ Who Am I");
+    if (!isGuessMeRoom(room)) {
+      socket.emit("error", "ห้องนี้ไม่ใช่ Guess Me");
       return;
     }
 
@@ -190,8 +190,8 @@ export function registerWhoAmIHandlers(io: GameIO, socket: GameSocket) {
       return;
     }
 
-    if (!isWhoAmIRoom(room)) {
-      socket.emit("error", "ห้องนี้ไม่ใช่ Who Am I");
+    if (!isGuessMeRoom(room)) {
+      socket.emit("error", "ห้องนี้ไม่ใช่ Guess Me");
       return;
     }
 
@@ -242,8 +242,8 @@ export function registerWhoAmIHandlers(io: GameIO, socket: GameSocket) {
       return;
     }
 
-    if (!isWhoAmIRoom(room)) {
-      socket.emit("error", "ห้องนี้ไม่ใช่ Who Am I");
+    if (!isGuessMeRoom(room)) {
+      socket.emit("error", "ห้องนี้ไม่ใช่ Guess Me");
       return;
     }
 
@@ -322,7 +322,7 @@ export function registerWhoAmIHandlers(io: GameIO, socket: GameSocket) {
     if (!roomId) return;
 
     const room = gameRooms.get(roomId);
-    if (!room || !isWhoAmIRoom(room)) return;
+    if (!room || !isGuessMeRoom(room)) return;
 
     const player = room.players.find((p) => p.id === socket.id);
     if (player && player.word) {

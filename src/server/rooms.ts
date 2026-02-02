@@ -7,9 +7,9 @@ import type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "@/types/game";
-import type { SpyFallGameRoom, UndercoverGameRoom, PendingDisconnect, AnyGameRoom } from "./types";
+import type { SpyFallGameRoom, ImposterGameRoom, PendingDisconnect, AnyGameRoom } from "./types";
 
-// Game rooms map (roomId -> GameRoom | SpyFallGameRoom | UndercoverGameRoom)
+// Game rooms map (roomId -> GameRoom | SpyFallGameRoom | ImposterGameRoom)
 export const gameRooms = new Map<string, AnyGameRoom>();
 
 // Pending disconnects map (sessionId -> PendingDisconnect)
@@ -45,7 +45,6 @@ export function broadcastRoomList(
   io: SocketIOServer<ClientToServerEvents, ServerToClientEvents>
 ) {
   const rooms = getRoomList();
-  // Broadcast to all sockets not in any game room
   io.sockets.sockets.forEach((socket) => {
     const roomId = playerRoomMap.get(socket.id);
     if (!roomId) {
@@ -54,23 +53,23 @@ export function broadcastRoomList(
   });
 }
 
-// Check if room is Who Am I type
-export function isWhoAmIRoom(
+// Check if room is Guess Me type (เดิม Who Am I)
+export function isGuessMeRoom(
   room: AnyGameRoom
 ): room is GameRoom {
-  return room.gameType === "who-am-i";
+  return room.gameType === "guess-me";
 }
 
-// Check if room is Spy Fall type
-export function isSpyFallRoom(
+// Check if room is Where Are We type (เดิม Spy Fall)
+export function isWhereAreWeRoom(
   room: AnyGameRoom
 ): room is SpyFallGameRoom {
-  return room.gameType === "spy-fall";
+  return room.gameType === "where-are-we";
 }
 
-// Check if room is Undercover type
-export function isUndercoverRoom(
+// Check if room is The Imposter type (เดิม Undercover)
+export function isImposterRoom(
   room: AnyGameRoom
-): room is UndercoverGameRoom {
-  return room.gameType === "undercover";
+): room is ImposterGameRoom {
+  return room.gameType === "imposter";
 }

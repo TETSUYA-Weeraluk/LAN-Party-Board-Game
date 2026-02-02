@@ -7,6 +7,7 @@ import type { RoomInfo } from "@/types/shared";
 import RoomList from "@/components/RoomList";
 import CreateRoomForm from "@/components/CreateRoomForm";
 import JoinRoomForm from "@/components/JoinRoomForm";
+import { RulesButton } from "@/game/guess-me";
 import Link from "next/link";
 
 type PageState = "room-list" | "creating-room" | "joining-room";
@@ -23,7 +24,7 @@ function ErrorToast({ message }: { message: string | null }) {
   );
 }
 
-export default function SpyFallRoomListPage() {
+export default function WhoAmIRoomListPage() {
   const router = useRouter();
   const [pageState, setPageState] = useState<PageState>("room-list");
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
@@ -46,16 +47,16 @@ export default function SpyFallRoomListPage() {
 
     socket.on("connect", handleConnect);
 
-    // Room list received - filter for spy-fall only
+    // Room list received - filter for guess-me only
     socket.on("roomList", (data) => {
-      const spyFallRooms = data.rooms.filter(r => r.gameType === "spy-fall");
-      setRooms(spyFallRooms);
+      const whoAmIRooms = data.rooms.filter(r => r.gameType === "guess-me");
+      setRooms(whoAmIRooms);
     });
 
     // Rejoin success - redirect to room
     socket.on("rejoinSuccess", (data) => {
-      if (data.gameType === "spy-fall") {
-        router.push(`/spy-fall/${data.roomId}`);
+      if (data.gameType === "guess-me") {
+        router.push(`/guess-me/${data.roomId}`);
       }
     });
 
@@ -66,8 +67,8 @@ export default function SpyFallRoomListPage() {
 
     // Room joined - redirect to room page
     socket.on("roomJoined", ({ roomId, gameType }) => {
-      if (gameType === "spy-fall") {
-        router.push(`/spy-fall/${roomId}`);
+      if (gameType === "guess-me") {
+        router.push(`/guess-me/${roomId}`);
       }
     });
 
@@ -120,7 +121,7 @@ export default function SpyFallRoomListPage() {
         password, 
         playerName, 
         sessionId,
-        gameType: "spy-fall"
+        gameType: "guess-me"
       });
     },
     []
@@ -139,6 +140,7 @@ export default function SpyFallRoomListPage() {
   if (pageState === "room-list") {
     return (
       <>
+        <RulesButton />
         <ErrorToast message={error} />
         {/* Back to home button */}
         <Link 
@@ -155,8 +157,7 @@ export default function SpyFallRoomListPage() {
           onCreateRoom={handleGoToCreateRoom}
           onSelectRoom={handleSelectRoom}
           onRefresh={handleRefreshRoomList}
-          gameTitle="🕵️ Spy Fall"
-          accentColor="cyan"
+          gameTitle="🎭 Who Am I?"
         />
       </>
     );
@@ -166,12 +167,9 @@ export default function SpyFallRoomListPage() {
   if (pageState === "creating-room") {
     return (
       <>
+        <RulesButton />
         <ErrorToast message={error} />
-        <CreateRoomForm 
-          onSubmit={handleCreateRoom} 
-          onBack={handleBackToRoomList}
-          accentColor="cyan"
-        />
+        <CreateRoomForm onSubmit={handleCreateRoom} onBack={handleBackToRoomList} />
       </>
     );
   }
@@ -180,12 +178,12 @@ export default function SpyFallRoomListPage() {
   if (pageState === "joining-room" && selectedRoom) {
     return (
       <>
+        <RulesButton />
         <ErrorToast message={error} />
         <JoinRoomForm
           room={selectedRoom}
           onSubmit={handleJoinRoom}
           onBack={handleBackToRoomList}
-          accentColor="cyan"
         />
       </>
     );
@@ -193,9 +191,10 @@ export default function SpyFallRoomListPage() {
 
   // Loading
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-cyan-900 to-blue-900">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800">
+      <RulesButton />
       <div className="text-center">
-        <div className="text-6xl mb-4 animate-bounce">🕵️</div>
+        <div className="text-6xl mb-4 animate-bounce">🎭</div>
         <p className="text-white text-xl">กำลังโหลด...</p>
       </div>
     </div>

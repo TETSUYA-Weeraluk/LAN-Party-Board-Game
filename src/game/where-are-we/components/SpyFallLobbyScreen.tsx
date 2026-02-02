@@ -49,7 +49,7 @@ export default function SpyFallLobbyScreen({
     if (typeof window !== "undefined") {
       const baseUrl = window.location.origin;
       setTimeout(() => {
-        setShareUrl(`${baseUrl}/spy-fall/${roomId}`);
+        setShareUrl(`${baseUrl}/where-are-we/${roomId}`);
       }, 0);
     }
   }, [roomId]);

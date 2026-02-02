@@ -1,7 +1,7 @@
 // Game type
-export type GameType = "who-am-i" | "spy-fall" | "undercover";
+export type GameType = "guess-me" | "where-are-we" | "imposter";
 
-// Player interface (base for Who Am I)
+// Player interface (base for Guess Me)
 export interface Player {
   id: string;
   sessionId: string;       // Session ID สำหรับ reconnection

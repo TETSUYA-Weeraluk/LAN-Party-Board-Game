@@ -1,16 +1,16 @@
-// Spy Fall game handlers
+// Where Are We game handlers (เดิม Spy Fall)
 
 import type { Server as SocketIOServer, Socket } from "socket.io";
 import type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "@/types/game";
-import { SPYFALL_LOCATIONS } from "@/game/spy-fall/constants";
+import { SPYFALL_LOCATIONS } from "@/game/where-are-we/constants";
 import {
   gameRooms,
   playerRoomMap,
   broadcastRoomList,
-  isSpyFallRoom,
+  isWhereAreWeRoom,
 } from "../rooms";
 import { getRandomLocation } from "../utils/game";
 
@@ -24,7 +24,7 @@ export function registerSpyFallHandlers(io: GameIO, socket: GameSocket) {
     if (!roomId) return;
 
     const room = gameRooms.get(roomId);
-    if (!room || !isSpyFallRoom(room)) return;
+    if (!room || !isWhereAreWeRoom(room)) return;
 
     // Don't allow adding during game
     if (room.isPlaying) {
@@ -65,7 +65,7 @@ export function registerSpyFallHandlers(io: GameIO, socket: GameSocket) {
     if (!roomId) return;
 
     const room = gameRooms.get(roomId);
-    if (!room || !isSpyFallRoom(room)) return;
+    if (!room || !isWhereAreWeRoom(room)) return;
 
     // Don't allow removing during game
     if (room.isPlaying) {
@@ -114,7 +114,7 @@ export function registerSpyFallHandlers(io: GameIO, socket: GameSocket) {
       return;
     }
 
-    if (!isSpyFallRoom(room)) {
+    if (!isWhereAreWeRoom(room)) {
       socket.emit("error", "ห้องนี้ไม่ใช่ Spy Fall");
       return;
     }
@@ -183,7 +183,7 @@ export function registerSpyFallHandlers(io: GameIO, socket: GameSocket) {
       return;
     }
 
-    if (!isSpyFallRoom(room)) {
+    if (!isWhereAreWeRoom(room)) {
       socket.emit("error", "ห้องนี้ไม่ใช่ Spy Fall");
       return;
     }
@@ -228,7 +228,7 @@ export function registerSpyFallHandlers(io: GameIO, socket: GameSocket) {
       return;
     }
 
-    if (!isSpyFallRoom(room)) {
+    if (!isWhereAreWeRoom(room)) {
       socket.emit("error", "ห้องนี้ไม่ใช่ Spy Fall");
       return;
     }
@@ -272,7 +272,7 @@ export function registerSpyFallHandlers(io: GameIO, socket: GameSocket) {
       return;
     }
 
-    if (!isSpyFallRoom(room)) {
+    if (!isWhereAreWeRoom(room)) {
       socket.emit("error", "ห้องนี้ไม่ใช่ Spy Fall");
       return;
     }

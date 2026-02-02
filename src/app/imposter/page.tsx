@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getSocket, getSessionId } from "@/lib/socket";
 import type { RoomInfo } from "@/types/shared";
 import RoomList from "@/components/RoomList";
 import CreateRoomForm from "@/components/CreateRoomForm";
 import JoinRoomForm from "@/components/JoinRoomForm";
-import { RulesButton } from "@/game/who-am-i";
 import Link from "next/link";
 
 type PageState = "room-list" | "creating-room" | "joining-room";
@@ -18,26 +17,28 @@ function ErrorToast({ message }: { message: string | null }) {
   return (
     <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
       <div className="bg-red-500 text-white px-6 py-3 rounded-xl shadow-lg animate-bounce">
-        ⚠️ {message}
+        {message}
       </div>
     </div>
   );
 }
 
-export default function WhoAmIRoomListPage() {
+export default function ImposterRoomListPage() {
   const router = useRouter();
   const [pageState, setPageState] = useState<PageState>("room-list");
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<RoomInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const hasAttemptedRejoin = useRef(false);
+
   useEffect(() => {
     const socket = getSocket();
     const sessionId = getSessionId();
 
-    // Try to rejoin first when connecting
     const handleConnect = () => {
-      console.log("Socket connected, attempting to rejoin with session:", sessionId);
+      if (hasAttemptedRejoin.current) return;
+      hasAttemptedRejoin.current = true;
       socket.emit("rejoin", { sessionId });
     };
 
@@ -47,28 +48,30 @@ export default function WhoAmIRoomListPage() {
 
     socket.on("connect", handleConnect);
 
-    // Room list received - filter for who-am-i only
     socket.on("roomList", (data) => {
-      const whoAmIRooms = data.rooms.filter(r => r.gameType === "who-am-i");
-      setRooms(whoAmIRooms);
+      const imposterRooms = data.rooms.filter(
+        (r) => r.gameType === "imposter"
+      );
+      setRooms(imposterRooms);
     });
 
-    // Rejoin success - redirect to room
     socket.on("rejoinSuccess", (data) => {
-      if (data.gameType === "who-am-i") {
-        router.push(`/who-am-i/${data.roomId}`);
+      if (data.gameType === "imposter") {
+        if (window.location.pathname !== `/imposter/${data.roomId}`) {
+          router.push(`/imposter/${data.roomId}`);
+        }
       }
     });
 
-    // Rejoin failed - stay on room list
     socket.on("rejoinFailed", () => {
       socket.emit("getRoomList");
     });
 
-    // Room joined - redirect to room page
     socket.on("roomJoined", ({ roomId, gameType }) => {
-      if (gameType === "who-am-i") {
-        router.push(`/who-am-i/${roomId}`);
+      if (gameType === "imposter") {
+        if (window.location.pathname !== `/imposter/${roomId}`) {
+          router.push(`/imposter/${roomId}`);
+        }
       }
     });
 
@@ -116,12 +119,12 @@ export default function WhoAmIRoomListPage() {
     (roomName: string, password: string | null, playerName: string) => {
       const socket = getSocket();
       const sessionId = getSessionId();
-      socket.emit("createRoom", { 
-        roomName, 
-        password, 
-        playerName, 
+      socket.emit("createRoom", {
+        roomName,
+        password,
+        playerName,
         sessionId,
-        gameType: "who-am-i"
+        gameType: "imposter",
       });
     },
     []
@@ -140,15 +143,24 @@ export default function WhoAmIRoomListPage() {
   if (pageState === "room-list") {
     return (
       <>
-        <RulesButton />
         <ErrorToast message={error} />
         {/* Back to home button */}
-        <Link 
-          href="/" 
+        <Link
+          href="/"
           className="fixed top-4 left-4 z-40 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl text-white transition-colors flex items-center gap-2"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
           </svg>
           กลับหน้าหลัก
         </Link>
@@ -157,7 +169,8 @@ export default function WhoAmIRoomListPage() {
           onCreateRoom={handleGoToCreateRoom}
           onSelectRoom={handleSelectRoom}
           onRefresh={handleRefreshRoomList}
-          gameTitle="🎭 Who Am I?"
+          gameTitle="🎭 The Imposter"
+          accentColor="purple"
         />
       </>
     );
@@ -167,9 +180,12 @@ export default function WhoAmIRoomListPage() {
   if (pageState === "creating-room") {
     return (
       <>
-        <RulesButton />
         <ErrorToast message={error} />
-        <CreateRoomForm onSubmit={handleCreateRoom} onBack={handleBackToRoomList} />
+        <CreateRoomForm
+          onSubmit={handleCreateRoom}
+          onBack={handleBackToRoomList}
+          accentColor="purple"
+        />
       </>
     );
   }
@@ -178,12 +194,12 @@ export default function WhoAmIRoomListPage() {
   if (pageState === "joining-room" && selectedRoom) {
     return (
       <>
-        <RulesButton />
         <ErrorToast message={error} />
         <JoinRoomForm
           room={selectedRoom}
           onSubmit={handleJoinRoom}
           onBack={handleBackToRoomList}
+          accentColor="purple"
         />
       </>
     );
@@ -191,8 +207,7 @@ export default function WhoAmIRoomListPage() {
 
   // Loading
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800">
-      <RulesButton />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900">
       <div className="text-center">
         <div className="text-6xl mb-4 animate-bounce">🎭</div>
         <p className="text-white text-xl">กำลังโหลด...</p>

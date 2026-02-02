@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSocket, getSessionId, clearSessionId } from "@/lib/socket";
 import type { Player, RoomInfo } from "@/types/shared";
-import type { UndercoverPlayer, UndercoverRole, UndercoverVoteResultData, UndercoverMrWhiteGuessResultData, UndercoverWinResult } from "@/game/undercover";
-import { UndercoverLobbyScreen, UndercoverGameScreen, UndercoverRoundEndScreen } from "@/game/undercover";
+import type { ImposterPlayer, ImposterRole, ImposterVoteResultData, ImposterBlankGuessResultData, ImposterWinResult } from "@/game/imposter";
+import { ImposterLobbyScreen, ImposterGameScreen, ImposterRoundEndScreen } from "@/game/imposter";
 import JoinRoomForm from "@/components/JoinRoomForm";
 
 type GameState = "loading" | "joining" | "lobby" | "playing" | "round-end";
@@ -22,40 +22,35 @@ function ErrorToast({ message }: { message: string | null }) {
   );
 }
 
-export default function UndercoverRoomPage() {
+export default function ImposterRoomPage() {
   const params = useParams();
   const router = useRouter();
   const roomId = params.roomId as string;
 
-  // Game state
   const [gameState, setGameState] = useState<GameState>("loading");
   const [roomInfo, setRoomInfo] = useState<RoomInfo | null>(null);
   const [currentRoomName, setCurrentRoomName] = useState<string>("");
 
-  // Player state
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const currentPlayerIdRef = useRef<string | null>(null);
-  const [players, setPlayers] = useState<UndercoverPlayer[]>([]);
+  const [players, setPlayers] = useState<ImposterPlayer[]>([]);
   const [isHost, setIsHost] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Game state
-  const [myRole, setMyRole] = useState<UndercoverRole>("civilian");
+  const [myRole, setMyRole] = useState<ImposterRole>("citizen");
   const [myWord, setMyWord] = useState<string | null>(null);
-  const [alivePlayers, setAlivePlayers] = useState<UndercoverPlayer[]>([]);
-  const [spectators, setSpectators] = useState<UndercoverPlayer[]>([]);
+  const [alivePlayers, setAlivePlayers] = useState<ImposterPlayer[]>([]);
+  const [spectators, setSpectators] = useState<ImposterPlayer[]>([]);
   const [isSpectator, setIsSpectator] = useState(false);
 
-  // Vote state
-  const [voteResult, setVoteResult] = useState<UndercoverVoteResultData | null>(null);
-  const [mrWhiteGuessResult, setMrWhiteGuessResult] = useState<UndercoverMrWhiteGuessResultData | null>(null);
-  const [waitingForMrWhiteGuess, setWaitingForMrWhiteGuess] = useState(false);
+  const [voteResult, setVoteResult] = useState<ImposterVoteResultData | null>(null);
+  const [blankGuessResult, setBlankGuessResult] = useState<ImposterBlankGuessResultData | null>(null);
+  const [waitingForBlankGuess, setWaitingForBlankGuess] = useState(false);
 
-  // Round end state
-  const [roundResult, setRoundResult] = useState<UndercoverWinResult>("civilian-win");
-  const [civilianWord, setCivilianWord] = useState<string>("");
-  const [undercoverWord, setUndercoverWord] = useState<string>("");
+  const [roundResult, setRoundResult] = useState<ImposterWinResult>("citizen-win");
+  const [citizenWord, setCitizenWord] = useState<string>("");
+  const [imposterWord, setImposterWord] = useState<string>("");
   const [currentRound, setCurrentRound] = useState(0);
   const [currentTurnPlayerId, setCurrentTurnPlayerId] = useState<string | null>(null);
   const [currentTurnPlayerName, setCurrentTurnPlayerName] = useState<string>("");
@@ -84,39 +79,37 @@ export default function UndercoverRoomPage() {
         setCurrentPlayer(data.player);
         currentPlayerIdRef.current = data.player.id;
         setIsHost(data.isHost);
-        setPlayers((data.players as unknown) as UndercoverPlayer[]);
+        setPlayers((data.players as unknown) as ImposterPlayer[]);
 
         if (data.gameState === "playing") {
-          setMyRole(data.myRole || "civilian");
+          setMyRole(data.myRole || "citizen");
           setMyWord(data.myWord || null);
           setAlivePlayers(data.alivePlayers || []);
           setSpectators(data.spectators || []);
           setCurrentRound(data.currentRound || 0);
           setCurrentTurnPlayerId(data.currentTurnPlayerId ?? null);
           setCurrentTurnPlayerName(data.currentTurnPlayerName || "");
-          setWaitingForMrWhiteGuess(data.waitingForMrWhiteGuess || false);
+          setWaitingForBlankGuess(data.waitingForBlankGuess || false);
           setIsYouGuessing(data.isYouGuessing || false);
-          
-          // Check if current player is spectator
-          const currentPlayerData = data.alivePlayers?.find((p: UndercoverPlayer) => p.id === data.player.id);
+
+          const currentPlayerData = data.alivePlayers?.find((p: ImposterPlayer) => p.id === data.player.id);
           setIsSpectator(!currentPlayerData);
-          
+
           setGameState("playing");
         } else if (data.gameState === "round-end") {
           setCurrentRound(data.currentRound || 0);
-          setCivilianWord(data.civilianWord || "");
-          setUndercoverWord(data.undercoverWord || "");
-          setRoundResult(data.undercoverRoundResult || "civilian-win");
+          setCitizenWord(data.citizenWord || "");
+          setImposterWord(data.imposterWord || "");
+          setRoundResult(data.imposterRoundResult || "citizen-win");
           setGameState("round-end");
         } else {
-          // Separate players into active and spectators
-          const allPlayers = (data.players as unknown) as UndercoverPlayer[];
+          const allPlayers = (data.players as unknown) as ImposterPlayer[];
           setAlivePlayers(allPlayers.filter(p => !p.isSpectator));
           setSpectators(allPlayers.filter(p => p.isSpectator));
           setGameState("lobby");
         }
       } else {
-        router.push(`/undercover/${data.roomId}`);
+        router.push(`/imposter/${data.roomId}`);
       }
     });
 
@@ -132,7 +125,7 @@ export default function UndercoverRoomPage() {
         setGameState("joining");
       } else {
         setError("ไม่พบห้องนี้");
-        setTimeout(() => router.push("/undercover"), 2000);
+        setTimeout(() => router.push("/imposter"), 2000);
       }
     });
 
@@ -147,29 +140,24 @@ export default function UndercoverRoomPage() {
       }
     });
 
-    // Players update (generic)
     socket.on("playersUpdate", (updatedPlayers) => {
-      const undercoverPlayers = (updatedPlayers as unknown) as UndercoverPlayer[];
-      setPlayers(undercoverPlayers);
-      setAlivePlayers(undercoverPlayers.filter(p => !p.isSpectator));
-      setSpectators(undercoverPlayers.filter(p => p.isSpectator));
+      const imposterPlayers = (updatedPlayers as unknown) as ImposterPlayer[];
+      setPlayers(imposterPlayers);
+      setAlivePlayers(imposterPlayers.filter(p => !p.isSpectator));
+      setSpectators(imposterPlayers.filter(p => p.isSpectator));
     });
 
-    // Undercover players update
-    socket.on("undercoverPlayersUpdate", (data) => {
+    socket.on("imposterPlayersUpdate", (data) => {
       setAlivePlayers(data.alivePlayers);
       setSpectators(data.spectators);
       setPlayers([...data.alivePlayers, ...data.spectators]);
-      
-      // Update isSpectator status using ref
       if (currentPlayerIdRef.current) {
-        const isSpec = data.spectators.some((p: UndercoverPlayer) => p.id === currentPlayerIdRef.current);
+        const isSpec = data.spectators.some((p: ImposterPlayer) => p.id === currentPlayerIdRef.current);
         setIsSpectator(isSpec);
       }
     });
 
-    // Undercover game started
-    socket.on("undercoverGameStarted", (data) => {
+    socket.on("imposterGameStarted", (data) => {
       setMyRole(data.role);
       setMyWord(data.word);
       setAlivePlayers(data.alivePlayers);
@@ -180,77 +168,60 @@ export default function UndercoverRoomPage() {
       setIsYouGuessing(false);
       setIsStarting(false);
       setVoteResult(null);
-      setMrWhiteGuessResult(null);
-      setWaitingForMrWhiteGuess(false);
-      
-      // Check if current player is spectator using ref
+      setBlankGuessResult(null);
+      setWaitingForBlankGuess(false);
       if (currentPlayerIdRef.current) {
-        const isSpec = data.spectators.some((p: UndercoverPlayer) => p.id === currentPlayerIdRef.current);
+        const isSpec = data.spectators.some((p: ImposterPlayer) => p.id === currentPlayerIdRef.current);
         setIsSpectator(isSpec);
       }
-      
       setGameState("playing");
     });
 
-    // Vote result
-    socket.on("undercoverVoteResult", (data) => {
+    socket.on("imposterVoteResult", (data) => {
       setVoteResult(data);
-      setWaitingForMrWhiteGuess(data.isMrWhiteGuessing);
+      setWaitingForBlankGuess(data.isBlankGuessing);
       setIsYouGuessing(data.isYouGuessing ?? false);
-      
-      // Update alive players - remove voted player
       setAlivePlayers(prev => prev.filter(p => p.id !== data.votedPlayerId));
     });
 
-    // Mr.White guess result
-    socket.on("undercoverMrWhiteGuessResult", (data) => {
-      console.log("Mr.White guess result received:", data);
-      setMrWhiteGuessResult(data);
-      setWaitingForMrWhiteGuess(false);
+    socket.on("imposterBlankGuessResult", (data) => {
+      setBlankGuessResult(data);
+      setWaitingForBlankGuess(false);
     });
 
-    // Round ended
-    socket.on("undercoverRoundEnded", (data) => {
-      console.log("Round ended received:", data);
-      
-      // เก็บข้อมูล round end ไว้ก่อน
+    socket.on("imposterRoundEnded", (data) => {
       const updateRoundEndState = () => {
         setPlayers(data.players);
         setRoundResult(data.result);
-        setCivilianWord(data.civilianWord);
-        setUndercoverWord(data.undercoverWord);
+        setCitizenWord(data.citizenWord);
+        setImposterWord(data.imposterWord);
         setCurrentRound(data.currentRound);
         setIsStarting(false);
         setVoteResult(null);
-        setMrWhiteGuessResult(null);
-        setWaitingForMrWhiteGuess(false);
+        setBlankGuessResult(null);
+        setWaitingForBlankGuess(false);
         setGameState("round-end");
       };
-      
-      // ถ้าเป็น Mr.White ชนะ รอให้ modal แสดงผลก่อน 3 วินาที
-      if (data.result === "mrwhite-win") {
+      if (data.result === "blank-win") {
         setTimeout(updateRoundEndState, 3000);
       } else {
         updateRoundEndState();
       }
     });
 
-    // Room closed
     socket.on("roomClosed", () => {
       clearSessionId();
-      router.push("/undercover");
+      router.push("/imposter");
     });
 
-    // Left room
     socket.on("leftRoom", () => {
-      router.push("/undercover");
+      router.push("/imposter");
     });
 
-    // Kicked from room
     socket.on("kicked", (reason) => {
       setError(reason);
       clearSessionId();
-      setTimeout(() => router.push("/undercover"), 2000);
+      setTimeout(() => router.push("/imposter"), 2000);
     });
 
     // Error handling
@@ -267,11 +238,11 @@ export default function UndercoverRoomPage() {
       socket.off("roomInfo");
       socket.off("roomJoined");
       socket.off("playersUpdate");
-      socket.off("undercoverPlayersUpdate");
-      socket.off("undercoverGameStarted");
-      socket.off("undercoverVoteResult");
-      socket.off("undercoverMrWhiteGuessResult");
-      socket.off("undercoverRoundEnded");
+      socket.off("imposterPlayersUpdate");
+      socket.off("imposterGameStarted");
+      socket.off("imposterVoteResult");
+      socket.off("imposterBlankGuessResult");
+      socket.off("imposterRoundEnded");
       socket.off("roomClosed");
       socket.off("leftRoom");
       socket.off("kicked");
@@ -289,7 +260,7 @@ export default function UndercoverRoomPage() {
   const handleStartGame = useCallback(() => {
     const socket = getSocket();
     setIsStarting(true);
-    socket.emit("startUndercoverGame");
+    socket.emit("startImposterGame");
   }, []);
 
   // Handle close room
@@ -307,25 +278,22 @@ export default function UndercoverRoomPage() {
   // Handle vote
   const handleVote = useCallback((playerId: string) => {
     const socket = getSocket();
-    socket.emit("undercoverVote", { playerId });
+    socket.emit("imposterVote", { playerId });
   }, []);
 
-  // Handle Mr.White guess
-  const handleMrWhiteGuess = useCallback((guess: string) => {
+  const handleBlankGuess = useCallback((guess: string) => {
     const socket = getSocket();
-    socket.emit("undercoverMrWhiteGuess", { guess });
+    socket.emit("imposterBlankGuess", { guess });
   }, []);
 
-  // Handle skip Mr.White guess (Host only)
-  const handleSkipMrWhiteGuess = useCallback(() => {
+  const handleSkipBlankGuess = useCallback(() => {
     const socket = getSocket();
-    socket.emit("undercoverSkipMrWhiteGuess");
+    socket.emit("imposterSkipBlankGuess");
   }, []);
 
-  // Handle end game
   const handleEndGame = useCallback(() => {
     const socket = getSocket();
-    socket.emit("endUndercoverGame");
+    socket.emit("endImposterGame");
   }, []);
 
   // Handle kick player
@@ -338,7 +306,7 @@ export default function UndercoverRoomPage() {
   const handleNextRound = useCallback(() => {
     const socket = getSocket();
     setIsStarting(true);
-    socket.emit("startUndercoverGame");
+    socket.emit("startImposterGame");
   }, []);
 
   // Handle join room
@@ -371,7 +339,7 @@ export default function UndercoverRoomPage() {
         <JoinRoomForm
           room={roomInfo}
           onSubmit={handleJoinRoom}
-          onBack={() => router.push("/undercover")}
+          onBack={() => router.push("/imposter")}
           accentColor="purple"
         />
       </>
@@ -383,7 +351,7 @@ export default function UndercoverRoomPage() {
     return (
       <>
         <ErrorToast message={error} />
-        <UndercoverLobbyScreen
+        <ImposterLobbyScreen
           roomId={roomId}
           roomName={currentRoomName}
           players={players}
@@ -405,7 +373,7 @@ export default function UndercoverRoomPage() {
     return (
       <>
         <ErrorToast message={error} />
-        <UndercoverGameScreen
+        <ImposterGameScreen
           currentPlayerId={currentPlayer.id}
           currentPlayerName={currentPlayer.name}
           myRole={myRole}
@@ -418,12 +386,12 @@ export default function UndercoverRoomPage() {
           currentTurnPlayerId={currentTurnPlayerId}
           currentTurnPlayerName={currentTurnPlayerName}
           voteResult={voteResult}
-          mrWhiteGuessResult={mrWhiteGuessResult}
-          waitingForMrWhiteGuess={waitingForMrWhiteGuess}
+          blankGuessResult={blankGuessResult}
+          waitingForBlankGuess={waitingForBlankGuess}
           isYouGuessing={isYouGuessing}
           onVote={handleVote}
-          onMrWhiteGuess={handleMrWhiteGuess}
-          onSkipMrWhiteGuess={handleSkipMrWhiteGuess}
+          onBlankGuess={handleBlankGuess}
+          onSkipBlankGuess={handleSkipBlankGuess}
           onCloseRoom={handleCloseRoom}
           onEndGame={handleEndGame}
         />
@@ -436,12 +404,12 @@ export default function UndercoverRoomPage() {
     return (
       <>
         <ErrorToast message={error} />
-        <UndercoverRoundEndScreen
+        <ImposterRoundEndScreen
           players={players}
           currentPlayerId={currentPlayer.id}
           result={roundResult}
-          civilianWord={civilianWord}
-          undercoverWord={undercoverWord}
+          citizenWord={citizenWord}
+          imposterWord={imposterWord}
           currentRound={currentRound}
           isHost={isHost}
           onNextRound={handleNextRound}

@@ -18,8 +18,8 @@ export default function Home() {
 
         {/* Game Selection Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Who Am I Card */}
-          <Link href="/who-am-i" className="group">
+          {/* Guess Me Card (เดิม Who Am I) */}
+          <Link href="/guess-me" className="group">
             <div className="relative overflow-hidden bg-gradient-to-br from-pink-500/20 to-purple-600/20 backdrop-blur-lg rounded-3xl p-6 border-2 border-pink-500/30 hover:border-pink-400/60 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-pink-500/20 h-full">
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/10 rounded-full blur-3xl group-hover:bg-pink-500/20 transition-all" />
@@ -28,7 +28,7 @@ export default function Home() {
               <div className="relative z-10">
                 <div className="text-6xl mb-4">🎭</div>
                 <h2 className="text-2xl font-bold text-white mb-2">
-                  Who Am I?
+                  Guess Me
                 </h2>
                 <p className="text-purple-200 mb-4 text-sm">
                   เกมทายตัวตน - ทุกคนได้รับคำแต่ไม่รู้คำของตัวเอง
@@ -50,8 +50,8 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* Spy Fall Card */}
-          <Link href="/spy-fall" className="group">
+          {/* Where Are We Card (เดิม Spy Fall) */}
+          <Link href="/where-are-we" className="group">
             <div className="relative overflow-hidden bg-gradient-to-br from-cyan-500/20 to-blue-600/20 backdrop-blur-lg rounded-3xl p-6 border-2 border-cyan-500/30 hover:border-cyan-400/60 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-cyan-500/20 h-full">
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-all" />
@@ -60,7 +60,7 @@ export default function Home() {
               <div className="relative z-10">
                 <div className="text-6xl mb-4">🕵️</div>
                 <h2 className="text-2xl font-bold text-white mb-2">
-                  Spy Fall
+                  Where Are We
                 </h2>
                 <p className="text-cyan-200 mb-4 text-sm">
                   หาสายลับ! ทุกคนรู้สถานที่ยกเว้น Spy
@@ -82,8 +82,8 @@ export default function Home() {
             </div>
           </Link>
 
-          {/* Undercover Card */}
-          <Link href="/undercover" className="group md:col-span-2 lg:col-span-1">
+          {/* The Imposter Card (เดิม Undercover) */}
+          <Link href="/imposter" className="group md:col-span-2 lg:col-span-1">
             <div className="relative overflow-hidden bg-gradient-to-br from-purple-500/20 to-indigo-600/20 backdrop-blur-lg rounded-3xl p-6 border-2 border-purple-500/30 hover:border-purple-400/60 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/20 h-full">
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-all" />
@@ -92,11 +92,11 @@ export default function Home() {
               <div className="relative z-10">
                 <div className="text-6xl mb-4">🎭</div>
                 <h2 className="text-2xl font-bold text-white mb-2">
-                  Undercover
+                  The Imposter
                 </h2>
                 <p className="text-purple-200 mb-4 text-sm">
-                  หาคนแปลกปลอม! พลเรือนได้คำเหมือนกัน
-                  Undercover ได้คำคล้าย Mr.White ไม่รู้คำ!
+                  หาคนแปลกปลอม! Citizen ได้คำเหมือนกัน
+                  Imposter ได้คำคล้าย The Blank ไม่รู้คำ!
                 </p>
                 <div className="flex items-center gap-2 text-purple-300 text-sm">
                   <span>👥 3-10 คน</span>

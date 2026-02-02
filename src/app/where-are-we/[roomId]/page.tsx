@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getSocket, getSessionId, clearSessionId } from "@/lib/socket";
 import type { Player, RoomInfo } from "@/types/shared";
-import type { SpyFallPlayer } from "@/game/spy-fall";
-import { SpyFallLobbyScreen, SpyFallGameScreen, SpyFallRoundEndScreen } from "@/game/spy-fall";
+import type { SpyFallPlayer } from "@/game/where-are-we";
+import { SpyFallLobbyScreen, SpyFallGameScreen, SpyFallRoundEndScreen } from "@/game/where-are-we";
 import JoinRoomForm from "@/components/JoinRoomForm";
 
 type GameState = "loading" | "joining" | "lobby" | "playing" | "round-end";
@@ -98,7 +98,7 @@ export default function SpyFallRoomPage() {
           setGameState("lobby");
         }
       } else {
-        router.push(`/spy-fall/${data.roomId}`);
+        router.push(`/where-are-we/${data.roomId}`);
       }
     });
 
@@ -114,7 +114,7 @@ export default function SpyFallRoomPage() {
         setGameState("joining");
       } else {
         setError("ไม่พบห้องนี้");
-        setTimeout(() => router.push("/spy-fall"), 2000);
+        setTimeout(() => router.push("/where-are-we"), 2000);
       }
     });
 
@@ -130,7 +130,7 @@ export default function SpyFallRoomPage() {
 
     // Players update
     socket.on("playersUpdate", (updatedPlayers) => {
-      // Cast to SpyFallPlayer[] for spy-fall rooms
+      // Cast to SpyFallPlayer[] for where-are-we rooms
       const spyFallPlayers = (updatedPlayers as unknown) as SpyFallPlayer[];
       setPlayers(spyFallPlayers);
     });
@@ -165,12 +165,12 @@ export default function SpyFallRoomPage() {
     // Room closed
     socket.on("roomClosed", () => {
       clearSessionId();
-      router.push("/spy-fall");
+      router.push("/where-are-we");
     });
 
     // Left room
     socket.on("leftRoom", () => {
-      router.push("/spy-fall");
+      router.push("/where-are-we");
     });
 
     // Error handling
@@ -282,7 +282,7 @@ export default function SpyFallRoomPage() {
         <JoinRoomForm
           room={roomInfo}
           onSubmit={handleJoinRoom}
-          onBack={() => router.push("/spy-fall")}
+          onBack={() => router.push("/where-are-we")}
           accentColor="cyan"
         />
       </>

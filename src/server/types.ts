@@ -3,8 +3,8 @@
 import type {
   Player,
   SpyFallPlayer,
-  UndercoverPlayer,
-  UndercoverWinResult,
+  ImposterPlayer,
+  ImposterWinResult,
 } from "@/types/game";
 
 // Grace period duration (10 minutes in milliseconds)
@@ -12,13 +12,13 @@ export const GRACE_PERIOD_MS = 10 * 60 * 1000;
 
 // Pending disconnect data
 export interface PendingDisconnect {
-  player: Player | SpyFallPlayer | UndercoverPlayer;
+  player: Player | SpyFallPlayer | ImposterPlayer;
   roomId: string;
   timeout: NodeJS.Timeout;
   wasHost: boolean;
 }
 
-// Extended GameRoom for Spy Fall
+// Extended GameRoom for Where Are We (เดิม Spy Fall)
 export interface SpyFallGameRoom {
   id: string;
   name: string;
@@ -34,33 +34,33 @@ export interface SpyFallGameRoom {
   playedCategories: string[];
   answeredCount: number;
   roundFinished: boolean;
-  gameType: "spy-fall";
+  gameType: "where-are-we";
   spyId: string | null;
   currentLocation: string | null;
   customLocations: string[];
   excludedLocations: string[];
 }
 
-// Extended GameRoom for Undercover
-export interface UndercoverGameRoom {
+// Extended GameRoom for The Imposter (เดิม Undercover)
+export interface ImposterGameRoom {
   id: string;
   name: string;
   password: string | null;
   hostId: string;
   hostName: string;
-  players: UndercoverPlayer[];
+  players: ImposterPlayer[];
   isPlaying: boolean;
   currentRound: number;
   roundFinished: boolean;
-  gameType: "undercover";
-  civilianWord: string | null;
-  undercoverWord: string | null;
+  gameType: "imposter";
+  citizenWord: string | null;
+  imposterWord: string | null;
   lastVotedPlayerId: string | null;
-  waitingForMrWhiteGuess: boolean;
-  roundResult: UndercoverWinResult | null;
-  currentTurnPlayerId: string | null;  // ผู้เล่นที่ต้องเริ่มพูดก่อน
-  usedWordPairIndices: number[];       // index ของคำที่ใช้ไปแล้ว
+  waitingForBlankGuess: boolean;
+  roundResult: ImposterWinResult | null;
+  currentTurnPlayerId: string | null;
+  usedWordPairIndices: number[];
 }
 
 // Union type for all room types
-export type AnyGameRoom = import("@/types/game").GameRoom | SpyFallGameRoom | UndercoverGameRoom;
+export type AnyGameRoom = import("@/types/game").GameRoom | SpyFallGameRoom | ImposterGameRoom;

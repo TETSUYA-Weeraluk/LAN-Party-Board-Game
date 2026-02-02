@@ -8,9 +8,9 @@ import type {
   GameRoom,
   GameType,
   SpyFallPlayer,
-  UndercoverPlayer,
+  ImposterPlayer,
 } from "@/types/game";
-import type { SpyFallGameRoom, UndercoverGameRoom } from "../types";
+import type { SpyFallGameRoom, ImposterGameRoom } from "../types";
 import { GRACE_PERIOD_MS } from "../types";
 import {
   gameRooms,
@@ -19,9 +19,9 @@ import {
   generateRoomId,
   getRoomList,
   broadcastRoomList,
-  isWhoAmIRoom,
-  isSpyFallRoom,
-  isUndercoverRoom,
+  isGuessMeRoom,
+  isWhereAreWeRoom,
+  isImposterRoom,
 } from "../rooms";
 
 type GameSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -64,10 +64,10 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
         roomId = generateRoomId();
       }
 
-      const finalGameType: GameType = gameType || "who-am-i";
+      const finalGameType: GameType = gameType || "guess-me";
 
-      if (finalGameType === "spy-fall") {
-        // Create Spy Fall room
+      if (finalGameType === "where-are-we") {
+        // Create Where Are We room (เดิม Spy Fall)
         const player: SpyFallPlayer = {
           id: socket.id,
           sessionId,
@@ -92,7 +92,7 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
           playedCategories: [],
           answeredCount: 0,
           roundFinished: false,
-          gameType: "spy-fall",
+          gameType: "where-are-we",
           spyId: null,
           currentLocation: null,
           customLocations: [],
@@ -107,12 +107,12 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
           roomName,
           player: player as unknown as Player,
           isHost: true,
-          gameType: "spy-fall",
+          gameType: "where-are-we",
         });
         io.to(`room-${roomId}`).emit("playersUpdate", room.players);
-      } else if (finalGameType === "undercover") {
-        // Create Undercover room
-        const player: UndercoverPlayer = {
+      } else if (finalGameType === "imposter") {
+        // Create The Imposter room (เดิม Undercover)
+        const player: ImposterPlayer = {
           id: socket.id,
           sessionId,
           name: playerName,
@@ -123,7 +123,7 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
           wins: 0,
         };
 
-        const room: UndercoverGameRoom = {
+        const room: ImposterGameRoom = {
           id: roomId,
           name: roomName,
           password: password || null,
@@ -133,11 +133,11 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
           isPlaying: false,
           currentRound: 0,
           roundFinished: false,
-          gameType: "undercover",
-          civilianWord: null,
-          undercoverWord: null,
+          gameType: "imposter",
+          citizenWord: null,
+          imposterWord: null,
           lastVotedPlayerId: null,
-          waitingForMrWhiteGuess: false,
+          waitingForBlankGuess: false,
           roundResult: null,
           currentTurnPlayerId: null,
           usedWordPairIndices: [],
@@ -151,11 +151,11 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
           roomName,
           player: player as unknown as Player,
           isHost: true,
-          gameType: "undercover",
+          gameType: "imposter",
         });
         io.to(`room-${roomId}`).emit("playersUpdate", room.players);
       } else {
-        // Create Who Am I room
+        // Create Guess Me room (เดิม Who Am I)
         const player: Player = {
           id: socket.id,
           sessionId,
@@ -182,7 +182,7 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
           playedCategories: [],
           answeredCount: 0,
           roundFinished: false,
-          gameType: "who-am-i",
+          gameType: "guess-me",
         };
 
         gameRooms.set(roomId, room);
@@ -193,7 +193,7 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
           roomName,
           player,
           isHost: true,
-          gameType: "who-am-i",
+          gameType: "guess-me",
         });
         io.to(`room-${roomId}`).emit("playersUpdate", room.players);
       }
@@ -222,8 +222,8 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
       return;
     }
 
-    if (isSpyFallRoom(room)) {
-      // Spy Fall: Can't join if playing
+    if (isWhereAreWeRoom(room)) {
+      // Where Are We: Can't join if playing
       if (room.isPlaying) {
         socket.emit("error", "เกมกำลังเล่นอยู่ ไม่สามารถเข้าร่วมได้");
         return;
@@ -246,14 +246,14 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
         roomName: room.name,
         player: player as unknown as Player,
         isHost: false,
-        gameType: "spy-fall",
+        gameType: "where-are-we",
       });
       io.to(`room-${roomId}`).emit("playersUpdate", room.players);
-    } else if (isUndercoverRoom(room)) {
-      // Undercover: Join as spectator if game is playing
+    } else if (isImposterRoom(room)) {
+      // The Imposter: Join as spectator if game is playing
       const isSpectator = room.isPlaying;
 
-      const player: UndercoverPlayer = {
+      const player: ImposterPlayer = {
         id: socket.id,
         sessionId,
         name: playerName,
@@ -272,13 +272,13 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
         roomName: room.name,
         player: player as unknown as Player,
         isHost: false,
-        gameType: "undercover",
+        gameType: "imposter",
       });
 
       // Send players update with alive/spectator separation
       const alivePlayers = room.players.filter((p) => !p.isSpectator);
       const spectators = room.players.filter((p) => p.isSpectator);
-      io.to(`room-${roomId}`).emit("undercoverPlayersUpdate", {
+      io.to(`room-${roomId}`).emit("imposterPlayersUpdate", {
         alivePlayers,
         spectators,
       });
@@ -287,7 +287,7 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
         socket.emit("error", "เกมกำลังเล่นอยู่ คุณจะเข้าร่วมเป็นผู้ดู");
       }
     } else {
-      // Who Am I: Allow late join but mark as waiting
+      // Guess Me: Allow late join but mark as waiting
       const isWaiting = room.isPlaying;
 
       const player: Player = {
@@ -309,7 +309,7 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
         roomName: room.name,
         player,
         isHost: false,
-        gameType: "who-am-i",
+        gameType: "guess-me",
       });
       io.to(`room-${roomId}`).emit("playersUpdate", room.players);
 
@@ -384,16 +384,16 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
       return;
     }
 
-    // Can't kick during game (Undercover can kick spectators or after game)
-    if (room.isPlaying && !isUndercoverRoom(room)) {
+    // Can't kick during game (The Imposter can kick spectators or after game)
+    if (room.isPlaying && !isImposterRoom(room)) {
       socket.emit("error", "ไม่สามารถเตะผู้เล่นระหว่างเกม");
       return;
     }
 
-    // For Undercover: can kick spectators during game, or anyone after game
-    if (isUndercoverRoom(room) && room.isPlaying) {
-      const undercoverPlayer = playerToKick as UndercoverPlayer;
-      if (!undercoverPlayer.isSpectator) {
+    // For The Imposter: can kick spectators during game, or anyone after game
+    if (isImposterRoom(room) && room.isPlaying) {
+      const imposterPlayer = playerToKick as ImposterPlayer;
+      if (!imposterPlayer.isSpectator) {
         socket.emit("error", "ไม่สามารถเตะผู้เล่นที่กำลังเล่นอยู่");
         return;
       }
@@ -410,10 +410,10 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
     io.sockets.sockets.get(playerId)?.leave(`room-${roomId}`);
 
     // Update players list
-    if (isUndercoverRoom(room)) {
+    if (isImposterRoom(room)) {
       const alivePlayers = room.players.filter((p) => !p.isSpectator);
       const spectators = room.players.filter((p) => p.isSpectator);
-      io.to(`room-${roomId}`).emit("undercoverPlayersUpdate", {
+      io.to(`room-${roomId}`).emit("imposterPlayersUpdate", {
         alivePlayers,
         spectators,
       });
@@ -543,7 +543,7 @@ export function registerCommonHandlers(io: GameIO, socket: GameSocket) {
 
     // Also check if sessionId already exists in any room (active player)
     let activeRoomId: string | null = null;
-    let activePlayer: Player | SpyFallPlayer | UndercoverPlayer | null = null;
+    let activePlayer: Player | SpyFallPlayer | ImposterPlayer | null = null;
     let activeWasHost = false;
 
     if (!pending) {
@@ -646,8 +646,8 @@ function emitRejoinSuccess(
   socket: GameSocket,
   io: GameIO,
   roomId: string,
-  room: GameRoom | SpyFallGameRoom | UndercoverGameRoom,
-  player: Player | SpyFallPlayer | UndercoverPlayer,
+  room: GameRoom | SpyFallGameRoom | ImposterGameRoom,
+  player: Player | SpyFallPlayer | ImposterPlayer,
   wasHost: boolean
 ) {
   // Determine current game state
@@ -659,7 +659,7 @@ function emitRejoinSuccess(
   }
 
   // Logic การ emit rejoinSuccess ตาม Game Type
-  if (isSpyFallRoom(room)) {
+  if (isWhereAreWeRoom(room)) {
     const spyFallPlayer = player as SpyFallPlayer;
     socket.emit("rejoinSuccess", {
       roomId,
@@ -668,7 +668,7 @@ function emitRejoinSuccess(
       isHost: wasHost,
       gameState: currentGameState,
       players: room.players as unknown as Player[],
-      gameType: "spy-fall",
+      gameType: "where-are-we",
       customLocations: room.customLocations,
       excludedLocations: room.excludedLocations,
       myLocation:
@@ -688,19 +688,19 @@ function emitRejoinSuccess(
           ? room.currentLocation || undefined
           : undefined,
     });
-  } else if (isUndercoverRoom(room)) {
-    const undercoverPlayer = player as UndercoverPlayer;
+  } else if (isImposterRoom(room)) {
+    const imposterPlayer = player as ImposterPlayer;
     const alivePlayers = room.players.filter(
       (p) => p.isAlive && !p.isSpectator
     );
     const spectators = room.players.filter((p) => p.isSpectator);
-    const mrWhiteWhoGuesses = room.players.find(
-      (p) => p.role === "mrwhite" && !p.isAlive
+    const blankWhoGuesses = room.players.find(
+      (p) => p.role === "blank" && !p.isAlive
     );
     const isYouGuessing =
       currentGameState === "playing" &&
-      room.waitingForMrWhiteGuess &&
-      mrWhiteWhoGuesses?.id === socket.id;
+      room.waitingForBlankGuess &&
+      blankWhoGuesses?.id === socket.id;
     const currentTurnPlayerName = room.currentTurnPlayerId
       ? room.players.find((p) => p.id === room.currentTurnPlayerId)?.name
       : undefined;
@@ -712,31 +712,31 @@ function emitRejoinSuccess(
       isHost: wasHost,
       gameState: currentGameState,
       players: room.players as unknown as Player[],
-      gameType: "undercover",
+      gameType: "imposter",
       currentRound: room.currentRound || undefined,
       myRole:
-        currentGameState === "playing" ? undercoverPlayer.role : undefined,
+        currentGameState === "playing" ? imposterPlayer.role : undefined,
       myWord:
         currentGameState === "playing"
-          ? undercoverPlayer.word || null
+          ? imposterPlayer.word || null
           : undefined,
       alivePlayers: currentGameState === "playing" ? alivePlayers : undefined,
       spectators: currentGameState === "playing" ? spectators : undefined,
-      civilianWord:
+      citizenWord:
         currentGameState === "round-end"
-          ? room.civilianWord || undefined
+          ? room.citizenWord || undefined
           : undefined,
-      undercoverWord:
+      imposterWord:
         currentGameState === "round-end"
-          ? room.undercoverWord || undefined
+          ? room.imposterWord || undefined
           : undefined,
-      undercoverRoundResult:
+      imposterRoundResult:
         currentGameState === "round-end"
           ? room.roundResult || undefined
           : undefined,
-      waitingForMrWhiteGuess:
+      waitingForBlankGuess:
         currentGameState === "playing"
-          ? room.waitingForMrWhiteGuess
+          ? room.waitingForBlankGuess
           : undefined,
       isYouGuessing: currentGameState === "playing" ? isYouGuessing : undefined,
       currentTurnPlayerId:
@@ -747,7 +747,7 @@ function emitRejoinSuccess(
         currentGameState === "playing" ? currentTurnPlayerName : undefined,
     });
   } else {
-    // Who Am I
+    // Guess Me
     const whoAmIRoom = room as GameRoom;
     let otherPlayers;
     if (currentGameState === "playing") {
@@ -771,7 +771,7 @@ function emitRejoinSuccess(
       isHost: wasHost,
       gameState: currentGameState,
       players: room.players,
-      gameType: "who-am-i",
+      gameType: "guess-me",
       category: whoAmIRoom.category || undefined,
       otherPlayers,
       timerDuration: room.timerDuration || undefined,
