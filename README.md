@@ -45,9 +45,9 @@
 
 <table>
 <tr>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
-### 🎭 Who Am I? — เกมทายตัวตน
+### 🎭 Guess Me — เกมทายตัวตน
 
 > *"ฉันคือใคร? ถามคำถามเพื่อหาคำตอบ!"*
 
@@ -61,9 +61,9 @@
 **หมวดหมู่:** สัตว์, ผลไม้, อาชีพ, ซุปเปอร์ฮีโร่, แบรนด์ดัง และอีกมากมาย!
 
 </td>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
-### 🕵️ Spy Fall — หาสายลับ
+### 🕵️ Where Are We — หาสายลับ
 
 > *"ใครคือ Spy? ถามให้รู้ ตอบให้เนียน!"*
 
@@ -75,6 +75,22 @@
 - 🎯 Spy ชนะ +2 คะแนน, คนอื่นชนะ +1 คะแนน
 
 **สถานที่:** 60+ สถานที่ เช่น เครื่องบิน, โรงพยาบาล, สวนสนุก และเพิ่มเองได้!
+
+</td>
+<td width="33%" valign="top">
+
+### 🎭 The Imposter — หาคนแปลกปลอม
+
+> *"ใครได้คำต่าง? Citizen ได้คำเหมือน The Blank ไม่รู้คำ!"*
+
+ผู้เล่นส่วนใหญ่ (Citizen) ได้ **คำเดียวกัน** คนแปลกปลอม (The Imposter) ได้คำคล้ายๆ ส่วน The Blank ไม่รู้คำใดๆ ต้องโหวตคนที่คิดว่าไม่ใช่ Citizen ออก!
+
+**กติกา:**
+- 👥 3-10 คน
+- ⏱️ ไม่จำกัดเวลา
+- 🏆 Citizen ชนะ +1, The Imposter ชนะ +2, The Blank ทายคำถูก +3
+
+**บทบาท:** Citizen, The Imposter, The Blank
 
 </td>
 </tr>
@@ -93,7 +109,7 @@
 ```bash
 # 1. Clone โปรเจค
 git clone <repository-url>
-cd board-game-who-am-i
+cd Board-Game-Who-AM-I
 
 # 2. ติดตั้ง Dependencies
 pnpm install
@@ -102,7 +118,24 @@ pnpm install
 pnpm dev
 ```
 
-> 🎉 เปิดเบราว์เซอร์ไปที่ **http://localhost:3000** ได้เลย!
+> 🎉 **คนที่รัน Server** เปิดเบราว์เซอร์ไปที่ **http://localhost:3000** ได้เลย!  
+> ⚠️ **คนอื่นในวง LAN** ต้องเข้า **http://\<IP ของคนที่รัน Server\>:3000** (ดูวิธีหา IP ด้านล่าง)
+
+### 🌐 หา IP ของตัวเอง (คนที่รัน Server)
+
+**localhost:3000** ใช้ได้แค่บนเครื่องที่รัน Server เท่านั้น คนอื่นใน WiFi เดียวกันจะเข้าไม่ได้ — ต้องใช้ **IP Address** ของเครื่องที่รัน Server แทน
+
+| ระบบปฏิบัติการ | วิธีหา IP |
+|-----------------|-----------|
+| **Windows** | เปิด Command Prompt หรือ PowerShell พิมพ์ `ipconfig` แล้วดูที่ **IPv4 Address** (มักขึ้นต้นด้วย 192.168.x.x) |
+| **macOS** | เปิด **System Settings** → **Network** → เลือก WiFi ที่ใช้ → ดู **IP Address** หรือเปิด Terminal พิมพ์ `ipconfig getifaddr en0` (WiFi) หรือ `en1` (สาย) |
+| **Linux** | เปิด Terminal พิมพ์ `ip addr` หรือ `hostname -I` แล้วดูเลขที่ขึ้นต้น 192.168.x.x |
+
+**ตัวอย่าง:** ถ้า IP ของคุณคือ `192.168.1.50`  
+- คุณเข้า: **http://localhost:3000** หรือ **http://192.168.1.50:3000**  
+- เพื่อนเข้า: **http://192.168.1.50:3000** เท่านั้น (ห้ามใช้ localhost)
+
+แชร์ URL แบบนี้ให้เพื่อน: `http://192.168.1.50:3000/guess-me` (เปลี่ยน path ตามเกมที่เล่น)
 
 ### 🏭 Production Build
 
@@ -122,14 +155,23 @@ pnpm start
 ### 👑 สำหรับ Host (คนเปิดเกม)
 
 1. รัน `pnpm dev` บนเครื่องของคุณ
-2. เปิด **http://localhost:3000**
-3. เลือกเกมที่ต้องการเล่น
-4. กด **"สร้างห้องใหม่"**
-5. แชร์ **URL + Room ID** ให้เพื่อน
+2. หา **IP ของเครื่องคุณ** (ดูหัวข้อ [หา IP ของตัวเอง](#-หา-ip-ของตัวเอง-คนที่รัน-server) ด้านบน)
+3. เปิดเบราว์เซอร์ไปที่ **http://localhost:3000** (หรือ **http://\<IP คุณ\>:3000**)
+4. เลือกเกมที่ต้องการเล่น (Guess Me / Where Are We / The Imposter)
+5. กด **"สร้างห้องใหม่"**
+6. แชร์ **URL ที่ใช้ IP ของคุณ** ให้เพื่อน (เพื่อนต้องเข้า IP นี้ ไม่ใช่ localhost!)
    ```
-   http://192.168.x.x:3000/who-am-i/ABC123
+   # ตัวอย่าง ถ้า IP คุณคือ 192.168.1.50
+   # Guess Me
+   http://192.168.1.50:3000/guess-me/ABC123
+
+   # Where Are We
+   http://192.168.1.50:3000/where-are-we/ABC123
+
+   # The Imposter
+   http://192.168.1.50:3000/imposter/ABC123
    ```
-6. รอผู้เล่นเข้าห้อง แล้วกดเริ่มเกม! 🎉
+7. รอผู้เล่นเข้าห้อง แล้วกดเริ่มเกม! 🎉
 
 </td>
 <td width="50%">
@@ -137,7 +179,7 @@ pnpm start
 ### 🎯 สำหรับผู้เล่น
 
 1. ต้องอยู่ **WiFi เดียวกัน** กับ Host
-2. เปิดเบราว์เซอร์ ไปที่ URL ที่ Host แชร์มา
+2. เปิดเบราว์เซอร์ ไปที่ **URL ที่ Host แชร์มา** (จะเป็นแบบ `http://192.168.x.x:3000/...` ไม่ใช่ localhost)
 3. เลือกห้องที่ต้องการ หรือ ใส่ Room ID
 4. ใส่ชื่อของคุณ (+ รหัสผ่านถ้ามี)
 5. รอ Host เริ่มเกม แล้วสนุกได้เลย! 🚀
@@ -167,7 +209,7 @@ pnpm start
 | 🚪 เข้า/ออกห้อง | เข้าออกห้องได้อิสระ |
 | 👑 Host Controls | Host ควบคุมเกมได้เต็มที่ |
 
-### 🎲 ระบบเกม Who Am I?
+### 🎲 ระบบเกม Guess Me
 | Feature | รายละเอียด |
 |---------|-----------|
 | 📂 หลายหมวดหมู่ | 20+ หมวดหมู่ให้เลือก |
@@ -176,13 +218,22 @@ pnpm start
 | ✅ ตอบถูก/❌ ตอบผิด | Host กดให้คะแนน หรือ คัดออกจากรอบ |
 | 🔁 เล่นหลายรอบ | ไม่ซ้ำหมวดหมู่ในแต่ละรอบ |
 
-### 🕵️ ระบบเกม Spy Fall
+### 🕵️ ระบบเกม Where Are We
 | Feature | รายละเอียด |
 |---------|-----------|
 | 📍 60+ สถานที่ | สถานที่เริ่มต้นพร้อมเล่น |
 | ➕ เพิ่มสถานที่ | ผู้เล่นทุกคนเพิ่มสถานที่ได้ |
 | ⏱️ Timer อัตโนมัติ | จำนวนผู้เล่น × 1 นาที |
 | 🎯 ตัดสิน Spy | Host กด Spy ถูกจับ / Spy ชนะ |
+
+### 🎭 ระบบเกม The Imposter
+| Feature | รายละเอียด |
+|---------|-----------|
+| 🃏 บทบาท 3 แบบ | Citizen, The Imposter, The Blank |
+| 📝 คู่คำ 60+ ชุด | คำ Citizen / คำ Imposter แยกกัน |
+| 🗳️ โหวตออก | Host โหวตคนที่คิดว่าไม่ใช่ Citizen |
+| 👻 The Blank ทายคำ | ถูกโหวตออกแล้วทายคำ Citizen ถูก = ชนะ |
+| 👀 โหมดผู้ดู | เข้าห้องระหว่างเล่นได้เป็นผู้ดู |
 
 ### 🎨 UI/UX
 | Feature | รายละเอียด |
@@ -194,12 +245,12 @@ pnpm start
 
 ---
 
-## ➕ การเพิ่มหมวดหมู่ / สถานที่
-
-แก้ไขไฟล์ `src/constant/index.ts`
+## ➕ การเพิ่มหมวดหมู่ / สถานที่ / คู่คำ
 
 <details>
-<summary><b>🎭 เพิ่มหมวดหมู่ Who Am I?</b></summary>
+<summary><b>🎭 เพิ่มหมวดหมู่ Guess Me</b></summary>
+
+แก้ไขไฟล์ `src/game/guess-me/constants.ts`
 
 ### 1. เพิ่มชื่อใน `CATEGORY_LIST`
 
@@ -232,26 +283,40 @@ export const PRESET_CATEGORIES = [
 </details>
 
 <details>
-<summary><b>🕵️ เพิ่มสถานที่ Spy Fall</b></summary>
+<summary><b>🕵️ เพิ่มสถานที่ Where Are We</b></summary>
+
+แก้ไขไฟล์ `src/game/where-are-we/constants.ts`
 
 ### เพิ่มใน `SPYFALL_LOCATIONS`
 
 ```typescript
 export const SPYFALL_LOCATIONS = [
+  "โรงเรียน",
+  "โรงพยาบาล",
   // ...
-  {
-    name: "ชื่อสถานที่",
-    roles: [
-      "บทบาท 1",
-      "บทบาท 2",
-      "บทบาท 3",
-      // เพิ่ม 6-8 บทบาท
-    ],
-  },
+  "ชื่อสถานที่ใหม่",  // ← เพิ่มตรงนี้
 ];
 ```
 
 > 💡 หรือเพิ่มผ่านหน้าเว็บได้เลย! (ก่อนเริ่มเกม หรือ หลังจบรอบ)
+
+</details>
+
+<details>
+<summary><b>🎭 เพิ่มคู่คำ The Imposter</b></summary>
+
+แก้ไขไฟล์ `src/game/imposter/constants.ts`
+
+### เพิ่มใน `imposterWords`
+
+```typescript
+export const imposterWords = [
+  // ...
+  { citizen: "คำที่ Citizen ได้", imposter: "คำที่ The Imposter ได้" },  // ← เพิ่มตรงนี้
+];
+```
+
+คำ Citizen กับ Imposter ควรเป็นคำที่ **คล้ายกันแต่ต่างกัน** (เช่น ซูชิ / ราเมง, ไอศกรีม / บิงซู)
 
 </details>
 
@@ -260,33 +325,36 @@ export const SPYFALL_LOCATIONS = [
 ## 📁 โครงสร้างโปรเจค
 
 ```
-board-game-who-am-i/
+Board-Game-Who-AM-I/
 ├── 🖥️  server.ts                    # Socket.io + Next.js Server
 ├── 📁 src/
 │   ├── 📁 app/
 │   │   ├── page.tsx                 # หน้าเลือกเกม
-│   │   ├── 📁 who-am-i/
-│   │   │   ├── page.tsx             # Who Am I - Room List
-│   │   │   └── [roomId]/page.tsx    # Who Am I - Game Room
-│   │   └── 📁 spy-fall/
-│   │       ├── page.tsx             # Spy Fall - Room List
-│   │       └── [roomId]/page.tsx    # Spy Fall - Game Room
+│   │   ├── 📁 guess-me/
+│   │   │   ├── page.tsx             # Guess Me - Room List
+│   │   │   └── [roomId]/page.tsx    # Guess Me - Game Room
+│   │   ├── 📁 where-are-we/
+│   │   │   ├── page.tsx             # Where Are We - Room List
+│   │   │   └── [roomId]/page.tsx    # Where Are We - Game Room
+│   │   └── 📁 imposter/
+│   │       ├── page.tsx             # The Imposter - Room List
+│   │       └── [roomId]/page.tsx    # The Imposter - Game Room
 │   ├── 📁 components/
-│   │   ├── GameSelector.tsx         # เลือกเกม
 │   │   ├── RoomList.tsx             # รายการห้อง
 │   │   ├── CreateRoomForm.tsx       # ฟอร์มสร้างห้อง
 │   │   ├── JoinRoomForm.tsx         # ฟอร์มเข้าห้อง
-│   │   ├── LobbyScreen.tsx          # หน้ารอผู้เล่น
-│   │   ├── GameScreen.tsx           # หน้าเล่น Who Am I
-│   │   ├── RoundEndScreen.tsx       # หน้าจบรอบ
-│   │   └── 📁 spy-fall/
-│   │       ├── SpyFallLobbyScreen.tsx
-│   │       ├── SpyFallGameScreen.tsx
-│   │       └── SpyFallRoundEndScreen.tsx
-│   ├── 📁 constant/
-│   │   └── index.ts                 # หมวดหมู่ + สถานที่
+│   │   └── ...
+│   ├── 📁 game/
+│   │   ├── 📁 guess-me/             # Guess Me - constants, types, components
+│   │   ├── 📁 where-are-we/         # Where Are We - constants, types, components
+│   │   └── 📁 imposter/             # The Imposter - constants, types, components
+│   ├── 📁 server/
+│   │   ├── 📁 handlers/             # Socket handlers (guess-me, where-are-we, imposter)
+│   │   ├── rooms.ts
+│   │   └── utils/game.ts
 │   ├── 📁 types/
-│   │   └── game.ts                  # TypeScript Types
+│   │   ├── game.ts                  # TypeScript Types
+│   │   └── shared.ts
 │   └── 📁 lib/
 │       └── socket.ts                # Socket.io Client
 └── 📄 package.json
