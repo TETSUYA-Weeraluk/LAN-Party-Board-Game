@@ -8,6 +8,40 @@ import type {
 
 // Socket instance (singleton)
 let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
+let appResumeListenersRegistered = false;
+
+/** เชื่อมต่อใหม่ / sync สถานะเมื่อกลับมาเปิดแอป (มือถือปิดจอ / สลับแอป) */
+function syncConnectionOnAppResume() {
+  if (!socket) return;
+
+  const sessionId = getSessionId();
+  if (!sessionId) return;
+
+  if (!socket.connected) {
+    socket.connect();
+    return;
+  }
+
+  // socket คิดว่ายังต่ออยู่ แต่ session อาจหลุดแล้ว — ขอ rejoin เพื่อ sync สถานะ
+  socket.emit("rejoin", { sessionId });
+}
+
+function registerAppResumeListeners() {
+  if (appResumeListenersRegistered || typeof window === "undefined") return;
+  appResumeListenersRegistered = true;
+
+  const onResume = () => {
+    if (document.visibilityState !== "visible") return;
+    syncConnectionOnAppResume();
+  };
+
+  document.addEventListener("visibilitychange", onResume);
+  window.addEventListener("online", onResume);
+  // iOS Safari กู้หน้าจาก bfcache
+  window.addEventListener("pageshow", (event) => {
+    if (event.persisted) onResume();
+  });
+}
 
 // Session ID key in localStorage
 const SESSION_ID_KEY = "board-game-session-id";
@@ -50,6 +84,8 @@ export function getSocket(): Socket<ServerToClientEvents, ClientToServerEvents> 
         sessionId, // Send sessionId with connection
       },
     });
+
+    registerAppResumeListeners();
   }
   return socket;
 }

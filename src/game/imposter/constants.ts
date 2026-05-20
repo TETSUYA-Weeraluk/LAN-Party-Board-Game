@@ -72,4 +72,65 @@ export const imposterWords = [
   { citizen: "ปากกาเคมี", imposter: "ดินสอไม้" },
   { citizen: "กระดานไวท์บอร์ด", imposter: "สมุดโน้ต" },
   { citizen: "สีเทียน", imposter: "สีน้ำ" },
+
+  // หมวดยานพาหนะและการเดินทาง
+  { citizen: "รถไฟ", imposter: "รถไฟฟ้า BTS" },
+  { citizen: "เรือใบ", imposter: "เรือยนต์" },
+  { citizen: "มอเตอร์ไซค์", imposter: "จักรยาน" },
+  { citizen: "เฮลิคอปเตอร์", imposter: "เครื่องบิน" },
+  { citizen: "ลิฟต์", imposter: "บันไดเลื่อน" },
+
+  // หมวดดนตรีและบันเทิง
+  { citizen: "กีตาร์", imposter: "อูคูเลเล่" },
+  { citizen: "กลอง", imposter: "ไซโลโฟน" },
+  { citizen: "ไวโอลิน", imposter: "วิโอลา" },
+  { citizen: "คอนเสิร์ต", imposter: "เทศกาลดนตรีกลางแจ้ง" },
+  { citizen: "ไมค์โครโฟน", imposter: "ลำโพง" },
+
+  // หมวดกีฬา
+  { citizen: "เทนนิส", imposter: "แบดมินตัน" },
+  { citizen: "บาสเกตบอล", imposter: "เน็ตบอล" },
+  { citizen: "มวยไทย", imposter: "ยูโด" },
+  { citizen: "สเก็ตบอร์ด", imposter: "อินไลน์สเก็ต" },
+  { citizen: "ยิมนาสติก", imposter: "เชียร์ลีดเดอร์" },
+
+  // หมวดสัตว์เลี้ยง
+  { citizen: "หมา", imposter: "แมว" },
+  { citizen: "กระต่าย", imposter: "หนูแฮมสเตอร์" },
+  { citizen: "ปลาทอง", imposter: "ปลาเบต้า" },
+  { citizen: "นกแก้ว", imposter: "นกคีรีบูน" },
+
+  // หมวดของหวานและขนม
+  { citizen: "โดนัท", imposter: "เบเกิล" },
+  { citizen: "มาการอง", imposter: "คุกกี้" },
+  { citizen: "ช็อกโกแลต", imposter: "คาราเมล" },
+  { citizen: "วาฟเฟิล", imposter: "แพนเค้ก" },
+
+  // หมวดสถานที่ท่องเที่ยว
+  { citizen: "พิพิธภัณฑ์", imposter: "หอศิลป์" },
+  { citizen: "สวนสัตว์", imposter: "อควาเรียม" },
+  { citizen: "โรงแรม", imposter: "โฮสเทล" },
+  { citizen: "ชายหาด", imposter: "สระว่ายน้ำ" },
+  { citizen: "ตลาดนัด", imposter: "ห้างสรรพสินค้า" },
+
+  // หมวดอาชีพเพิ่มเติม
+  { citizen: "หมอ", imposter: "พยาบาล" },
+  { citizen: "ครู", imposter: "อาจารย์มหาวิทยาลัย" },
+  { citizen: "นักแสดง", imposter: "นางแบบ" },
+  { citizen: "นักวาดการ์ตูน", imposter: "นักออกแบบกราฟิก" },
+  { citizen: "นักสืบ", imposter: "นักข่าว" },
+
+  // หมวดเครื่องใช้ในบ้าน
+  { citizen: "พัดลม", imposter: "แอร์" },
+  { citizen: "ตู้เย็น", imposter: "ตู้แช่แข็ง" },
+  { citizen: "เครื่องซักผ้า", imposter: "เครื่องอบผ้า" },
+  { citizen: "โซฟา", imposter: "เก้าอี้นวด" },
+  { citizen: "กระจกเงา", imposter: "กรอบรูป" },
+
+  // หมวดธรรมชาติและฤดูกาล
+  { citizen: "ฤดูร้อน", imposter: "ฤดูใบไม้ผลิ" },
+  { citizen: "รุ้ง", imposter: "ดาวตก" },
+  { citizen: "น้ำตก", imposter: "แม่น้ำ" },
+  { citizen: "ป่าดงดิบ", imposter: "ป่าสน" },
+  { citizen: "ปะการัง", imposter: "สาหร่ายทะเล" },
 ];

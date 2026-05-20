@@ -17,7 +17,7 @@ export function calculateScore(order: number): number {
 // Generate words from preset categories (Guess Me)
 export function generateWordsFromPreset(
   category: string,
-  playerCount: number
+  playerCount: number,
 ): string[] {
   const preset = PRESET_CATEGORIES.find((p) => p.name === category);
 
@@ -34,7 +34,7 @@ export function generateWordsFromPreset(
 // Generate random category from preset list (excluding already played)
 export function generateRandomCategory(playedCategories: string[]): string {
   const availableCategories = CATEGORY_LIST.filter(
-    (cat) => !playedCategories.includes(cat)
+    (cat) => !playedCategories.includes(cat),
   );
   const categoriesToUse =
     availableCategories.length > 0 ? availableCategories : CATEGORY_LIST;
@@ -43,9 +43,12 @@ export function generateRandomCategory(playedCategories: string[]): string {
 }
 
 // Get random location for Where Are We
-export function getRandomLocation(customLocations: string[], excludedLocations: string[]): string {
+export function getRandomLocation(
+  customLocations: string[],
+  excludedLocations: string[],
+): string {
   const allLocations = [...SPYFALL_LOCATIONS, ...customLocations].filter(
-    (loc) => !excludedLocations.includes(loc)
+    (loc) => !excludedLocations.includes(loc),
   );
   if (allLocations.length === 0) {
     return SPYFALL_LOCATIONS[0];
@@ -70,17 +73,21 @@ export const IMPOSTER_ROLE_DISTRIBUTION: Record<
 };
 
 // Get random word pair for The Imposter (excluding used pairs)
-export function getRandomImposterWords(
-  usedIndices: number[] = []
-): { citizen: string; imposter: string; index: number } {
+export function getRandomImposterWords(usedIndices: number[] = []): {
+  citizen: string;
+  imposter: string;
+  index: number;
+} {
   const availableIndices = imposterWords
     .map((_, index) => index)
     .filter((index) => !usedIndices.includes(index));
+
   const indicesToUse =
     availableIndices.length > 0
       ? availableIndices
       : imposterWords.map((_, index) => index);
-  const randomIndex = indicesToUse[Math.floor(Math.random() * indicesToUse.length)];
+  const randomIndex =
+    indicesToUse[Math.floor(Math.random() * indicesToUse.length)];
   const wordPair = imposterWords[randomIndex];
   return {
     citizen: wordPair.citizen,
@@ -109,12 +116,16 @@ export function distributeImposterRoles(playerCount: number): ImposterRole[] {
 
 // Check win condition for The Imposter
 export function checkImposterWinCondition(
-  room: ImposterGameRoom
+  room: ImposterGameRoom,
 ): ImposterWinResult | null {
   const alivePlayers = room.players.filter((p) => p.isAlive && !p.isSpectator);
-  const aliveImposterCount = alivePlayers.filter((p) => p.role === "imposter").length;
+  const aliveImposterCount = alivePlayers.filter(
+    (p) => p.role === "imposter",
+  ).length;
   const aliveBlankCount = alivePlayers.filter((p) => p.role === "blank").length;
-  const aliveCitizenCount = alivePlayers.filter((p) => p.role === "citizen").length;
+  const aliveCitizenCount = alivePlayers.filter(
+    (p) => p.role === "citizen",
+  ).length;
 
   if (aliveImposterCount === 0 && aliveBlankCount === 0) {
     return "citizen-win";

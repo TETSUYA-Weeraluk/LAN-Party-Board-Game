@@ -9,7 +9,7 @@ const prompt = Prompt({
 });
 
 export const metadata: Metadata = {
-  title: "Who Am I? | เกมทายตัวตน",
+  title: "LAN Party Board Game",
   description: "เกมทายตัวตนสำหรับเล่นกับเพื่อนผ่าน LAN/WiFi",
 };
 

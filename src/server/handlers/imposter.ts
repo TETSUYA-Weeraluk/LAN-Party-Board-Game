@@ -1,10 +1,7 @@
 // The Imposter game handlers (เดิม Undercover)
 
 import type { Server as SocketIOServer, Socket } from "socket.io";
-import type {
-  ServerToClientEvents,
-  ClientToServerEvents,
-} from "@/types/game";
+import type { ServerToClientEvents, ClientToServerEvents } from "@/types/game";
 import {
   gameRooms,
   playerRoomMap,
@@ -72,6 +69,7 @@ export function registerImposterHandlers(io: GameIO, socket: GameSocket) {
     }
 
     const wordPair = getRandomImposterWords(room.usedWordPairIndices || []);
+
     room.citizenWord = wordPair.citizen;
     room.imposterWord = wordPair.imposter;
 
@@ -111,11 +109,12 @@ export function registerImposterHandlers(io: GameIO, socket: GameSocket) {
     room.roundResult = null;
 
     const playersWithWord = activePlayers.filter((p) => p.role !== "blank");
-    const randomFirstPlayer = playersWithWord[Math.floor(Math.random() * playersWithWord.length)];
+    const randomFirstPlayer =
+      playersWithWord[Math.floor(Math.random() * playersWithWord.length)];
     room.currentTurnPlayerId = randomFirstPlayer.id;
 
     const alivePlayersForEmit = room.players.filter(
-      (p) => p.isAlive && !p.isSpectator
+      (p) => p.isAlive && !p.isSpectator,
     );
     const spectators = room.players.filter((p) => p.isSpectator);
     const firstPlayerName = randomFirstPlayer.name;
@@ -187,7 +186,8 @@ export function registerImposterHandlers(io: GameIO, socket: GameSocket) {
 
     const blankWhoGuesses = isBlank ? votedPlayer : null;
     room.players.forEach((p) => {
-      const isYouGuessing = blankWhoGuesses !== null && p.id === blankWhoGuesses.id;
+      const isYouGuessing =
+        blankWhoGuesses !== null && p.id === blankWhoGuesses.id;
       io.to(p.id).emit("imposterVoteResult", {
         votedPlayerId: playerId,
         votedPlayerName: votedPlayer.name,
@@ -230,7 +230,7 @@ export function registerImposterHandlers(io: GameIO, socket: GameSocket) {
     }
 
     const blankPlayer = room.players.find(
-      (p) => p.role === "blank" && !p.isAlive
+      (p) => p.role === "blank" && !p.isAlive,
     );
     if (!blankPlayer) {
       socket.emit("error", "ไม่พบ Blank ที่ถูกโหวต");
@@ -300,7 +300,7 @@ export function registerImposterHandlers(io: GameIO, socket: GameSocket) {
     room.waitingForBlankGuess = false;
 
     const blankPlayer = room.players.find(
-      (p) => p.role === "blank" && !p.isAlive
+      (p) => p.role === "blank" && !p.isAlive,
     );
 
     if (blankPlayer) {
@@ -358,7 +358,7 @@ export function registerImposterHandlers(io: GameIO, socket: GameSocket) {
 function handleWinConditionCheck(
   io: GameIO,
   room: ReturnType<typeof gameRooms.get> & { gameType: "imposter" },
-  roomId: string
+  roomId: string,
 ) {
   if (!room || !isImposterRoom(room)) return;
 
@@ -395,7 +395,9 @@ function handleWinConditionCheck(
 
     broadcastRoomList(io);
   } else {
-    const alivePlayers = room.players.filter((p) => p.isAlive && !p.isSpectator);
+    const alivePlayers = room.players.filter(
+      (p) => p.isAlive && !p.isSpectator,
+    );
     const spectators = room.players.filter((p) => p.isSpectator);
     io.to(`room-${roomId}`).emit("imposterPlayersUpdate", {
       alivePlayers,
